@@ -1,0 +1,385 @@
+./build/src/fx-dock: No such file or directory.
+Starting program:  
+No executable file specified.
+Use the "file" or "exec-file" command.
+Reading symbols from ./build/src/waydock...
+Starting program: /home/erikreider/Git/fx-dock/build/src/waydock 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[New Thread 0x7fffe6e006c0 (LWP 450641)]
+[New Thread 0x7fffe56006c0 (LWP 450643)]
+[New Thread 0x7fffe4c006c0 (LWP 450644)]
+[New Thread 0x7fffdfe006c0 (LWP 450645)]
+[New Thread 0x7fffdf4006c0 (LWP 450646)]
+[New Thread 0x7fffdea006c0 (LWP 450647)]
+
+Thread 1 "waydock" received signal SIGSEGV, Segmentation fault.
+0x000000000040891d in window_toplevel_focused (self=0x5c7c50 [Window], toplevel=0x4a3800) at ../src/window.vala:65
+65	        icon.toplevels.remove (toplevel);
+#0  0x000000000040891d in window_toplevel_focused (self=0x5c7c50 [Window], toplevel=0x4a3800) at ../src/window.vala:65
+#1  0x000000000040801d in _window_toplevel_focused_wlr_foreign_helper_toplevel_focused (_sender=0x50a700 [WlrForeignHelper], toplevel=0x4a3800, self=0x5c7c50) at ../src/window.vala:40
+#2  0x00007ffff7d7664a in g_closure_invoke (closure=0x56bd80, return_value=0x0, n_param_values=2, param_values=0x7fffffff68e0, invocation_hint=0x7fffffff6830) at ../gobject/gclosure.c:834
+#3  0x00007ffff7da65f3 in signal_emit_unlocked_R.isra.0 (node=node@entry=0x7fffffff69e0, detail=detail@entry=0, instance=instance@entry=0x50a700, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffff68e0) at ../gobject/gsignal.c:3888
+#4  0x00007ffff7d97104 in signal_emit_valist_unlocked (instance=instance@entry=0x50a700, signal_id=signal_id@entry=49, detail=detail@entry=0, var_args=var_args@entry=0x7fffffff6b50) at ../gobject/gsignal.c:3520
+#5  0x00007ffff7d97361 in g_signal_emit_valist (instance=0x50a700, signal_id=49, detail=0, var_args=var_args@entry=0x7fffffff6b50) at ../gobject/gsignal.c:3263
+#6  0x00007ffff7d97423 in g_signal_emit (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>) at ../gobject/gsignal.c:3583
+#7  0x0000000000407876 in wlr_foreign_helper_handle_state (data=0x4a3800, handle=0x51d3d0, states=0x42ae90) at ../src/wlr_foreign_helper.vala:208
+#8  0x0000000000405e57 in _wlr_foreign_helper_handle_state_wlr_foreign_toplevel_toplevel_listener_state (data=0x4a3800, handle=0x51d3d0, state=0x42ae90) at ../src/wlr_foreign_helper.vala:27
+#9  0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#10 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff6ee0, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#11 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff6ee0, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff6fb0) at ../src/x86/ffi64.c:710
+#12 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x42adc0, target=<optimized out>, target@entry=0x51d3d0, opcode=opcode@entry=4, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#13 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#14 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#15 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#16 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#17 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#18 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587e40) at ../src/wlr_foreign_helper.vala:112
+#19 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587e40) at ../src/wlr_foreign_helper.vala:37
+#20 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#21 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff7410, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#22 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff7410, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff74e0) at ../src/x86/ffi64.c:710
+#23 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x52a560, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#24 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#25 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#26 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#27 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#28 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#29 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587d20) at ../src/wlr_foreign_helper.vala:112
+#30 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587d20) at ../src/wlr_foreign_helper.vala:37
+#31 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#32 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff7940, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#33 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff7940, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff7a10) at ../src/x86/ffi64.c:710
+#34 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x52ab20, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#35 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#36 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#37 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#38 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#39 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#40 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587c00) at ../src/wlr_foreign_helper.vala:112
+#41 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587c00) at ../src/wlr_foreign_helper.vala:37
+#42 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#43 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff7e70, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#44 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff7e70, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff7f40) at ../src/x86/ffi64.c:710
+#45 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x52b9a0, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#46 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#47 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#48 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#49 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#50 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#51 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587ae0) at ../src/wlr_foreign_helper.vala:112
+#52 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587ae0) at ../src/wlr_foreign_helper.vala:37
+#53 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#54 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff83a0, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#55 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff83a0, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff8470) at ../src/x86/ffi64.c:710
+#56 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x58a350, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#57 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#58 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#59 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#60 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#61 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#62 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x5879c0) at ../src/wlr_foreign_helper.vala:112
+#63 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x5879c0) at ../src/wlr_foreign_helper.vala:37
+#64 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#65 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff88d0, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#66 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff88d0, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff89a0) at ../src/x86/ffi64.c:710
+#67 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x58a140, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#68 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#69 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#70 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#71 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#72 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#73 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x5878a0) at ../src/wlr_foreign_helper.vala:112
+#74 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x5878a0) at ../src/wlr_foreign_helper.vala:37
+#75 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#76 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff8e00, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#77 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff8e00, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff8ed0) at ../src/x86/ffi64.c:710
+#78 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x589ba0, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#79 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#80 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#81 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#82 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#83 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#84 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587780) at ../src/wlr_foreign_helper.vala:112
+#85 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587780) at ../src/wlr_foreign_helper.vala:37
+#86 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#87 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff9330, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#88 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff9330, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff9400) at ../src/x86/ffi64.c:710
+#89 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x589990, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#90 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#91 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#92 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#93 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#94 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#95 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587660) at ../src/wlr_foreign_helper.vala:112
+#96 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587660) at ../src/wlr_foreign_helper.vala:37
+#97 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#98 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff9860, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#99 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff9860, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff9930) at ../src/x86/ffi64.c:710
+#100 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x5bba20, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#101 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#102 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#103 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#104 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#105 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#106 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587420) at ../src/wlr_foreign_helper.vala:112
+#107 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587420) at ../src/wlr_foreign_helper.vala:37
+#108 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#109 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffff9d90, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#110 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffff9d90, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffff9e60) at ../src/x86/ffi64.c:710
+#111 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x513550, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#112 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#113 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#114 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#115 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#116 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#117 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x587300) at ../src/wlr_foreign_helper.vala:112
+#118 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x587300) at ../src/wlr_foreign_helper.vala:37
+#119 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#120 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffa2c0, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#121 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffa2c0, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffa390) at ../src/x86/ffi64.c:710
+#122 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x4e88d0, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#123 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#124 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#125 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#126 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#127 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#128 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x51d970) at ../src/wlr_foreign_helper.vala:112
+#129 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x51d970) at ../src/wlr_foreign_helper.vala:37
+#130 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#131 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffa7f0, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#132 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffa7f0, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffa8c0) at ../src/x86/ffi64.c:710
+#133 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x5687f0, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#134 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#135 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#136 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#137 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#138 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#139 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x51d850) at ../src/wlr_foreign_helper.vala:112
+#140 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x51d850) at ../src/wlr_foreign_helper.vala:37
+#141 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#142 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffad20, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#143 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffad20, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffadf0) at ../src/x86/ffi64.c:710
+#144 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x517bb0, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#145 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#146 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#147 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#148 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#149 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#150 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x51d730) at ../src/wlr_foreign_helper.vala:112
+#151 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x51d730) at ../src/wlr_foreign_helper.vala:37
+#152 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#153 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffb250, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#154 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffb250, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffb320) at ../src/x86/ffi64.c:710
+#155 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x527750, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#156 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#157 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#158 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#159 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#160 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#161 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x51d610) at ../src/wlr_foreign_helper.vala:112
+#162 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x51d610) at ../src/wlr_foreign_helper.vala:37
+#163 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#164 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffb780, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#165 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffb780, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffb850) at ../src/x86/ffi64.c:710
+#166 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x568c20, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#167 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#168 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#169 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#170 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#171 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#172 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x51d4f0) at ../src/wlr_foreign_helper.vala:112
+#173 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x51d4f0) at ../src/wlr_foreign_helper.vala:37
+#174 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#175 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffbcb0, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#176 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffbcb0, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffbd80) at ../src/x86/ffi64.c:710
+#177 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x514970, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#178 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#179 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#180 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#181 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#182 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#183 0x0000000000406663 in wlr_foreign_helper_handle_toplevel (self=0x50a700 [WlrForeignHelper], manager=0x51e1a0, handle=0x51d3d0) at ../src/wlr_foreign_helper.vala:112
+#184 0x0000000000405eff in _wlr_foreign_helper_handle_toplevel_wlr_foreign_toplevel_manager_listener_toplevel (data=0x50a700, manager=0x51e1a0, toplevel=0x51d3d0) at ../src/wlr_foreign_helper.vala:37
+#185 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#186 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffc1e0, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#187 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffc1e0, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffc2b0) at ../src/x86/ffi64.c:710
+#188 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x59e7e0, target=<optimized out>, target@entry=0x51e1a0, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#189 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#190 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#191 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#192 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#193 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#194 0x0000000000406508 in wlr_foreign_helper_registry_handle_global (self=0x50a700 [WlrForeignHelper], wl_registry=0x51de40, name=23, interface=0x50b9a0 "zwlr_foreign_toplevel_manager_v1", version=3) at ../src/wlr_foreign_helper.vala:96
+#195 0x0000000000405f60 in _wlr_foreign_helper_registry_handle_global_wl_registrylistenerglobal (data=0x50a700, wl_registry=0x51de40, name=23, interface=0x50b9a0 "zwlr_foreign_toplevel_manager_v1", version=3) at ../src/wlr_foreign_helper.vala:24
+#196 0x00007ffff7b4a056 in ffi_call_unix64 () at ../src/x86/unix64.S:104
+#197 0x00007ffff7b466a0 in ffi_call_int (cif=cif@entry=0x7fffffffc710, fn=<optimized out>, rvalue=<optimized out>, avalue=<optimized out>, closure=closure@entry=0x0) at ../src/x86/ffi64.c:673
+#198 0x00007ffff7b494ee in ffi_call (cif=cif@entry=0x7fffffffc710, fn=<optimized out>, rvalue=rvalue@entry=0x0, avalue=avalue@entry=0x7fffffffc7e0) at ../src/x86/ffi64.c:710
+#199 0x00007ffff7bff10e in wl_closure_invoke (closure=closure@entry=0x50b8c0, target=<optimized out>, target@entry=0x51de40, opcode=opcode@entry=0, data=<optimized out>, flags=1) at ../src/connection.c:1228
+#200 0x00007ffff7bff979 in dispatch_event (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:1670
+#201 0x00007ffff7bffd73 in dispatch_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1816
+#202 wl_display_dispatch_queue_pending (display=display@entry=0x46cab0, queue=queue@entry=0x46cba8) at ../src/wayland-client.c:2058
+#203 0x00007ffff7c01964 in wl_display_dispatch_queue (display=<optimized out>, queue=<optimized out>) at ../src/wayland-client.c:2034
+#204 0x00007ffff7c02c0b in wl_display_roundtrip_queue (display=0x46cab0, queue=0x46cba8) at ../src/wayland-client.c:1444
+#205 0x000000000040608f in wlr_foreign_helper_start (self=0x50a700 [WlrForeignHelper]) at ../src/wlr_foreign_helper.vala:62
+#206 0x0000000000404c34 in __lambda4_ (_data1_=0x4317f0) at ../src/main.vala:29
+#207 0x0000000000404c95 in ___lambda4__g_application_activate (_sender=0x54c0f0 [GtkApplication], self=0x4317f0) at ../src/main.vala:25
+#208 0x00007ffff7d7664a in g_closure_invoke (closure=0x4b4510, return_value=0x0, n_param_values=1, param_values=0x7fffffffccb0, invocation_hint=0x7fffffffcc00) at ../gobject/gclosure.c:834
+#209 0x00007ffff7da65f3 in signal_emit_unlocked_R.isra.0 (node=node@entry=0x7fffffffcd90, detail=detail@entry=0, instance=instance@entry=0x54c0f0, emission_return=emission_return@entry=0x0, instance_and_params=instance_and_params@entry=0x7fffffffccb0) at ../gobject/gsignal.c:3888
+#210 0x00007ffff7d97104 in signal_emit_valist_unlocked (instance=instance@entry=0x54c0f0, signal_id=signal_id@entry=58, detail=detail@entry=0, var_args=var_args@entry=0x7fffffffcf00) at ../gobject/gsignal.c:3520
+#211 0x00007ffff7d97361 in g_signal_emit_valist (instance=0x54c0f0, signal_id=58, detail=0, var_args=var_args@entry=0x7fffffffcf00) at ../gobject/gsignal.c:3263
+#212 0x00007ffff7d97423 in g_signal_emit (instance=<optimized out>, signal_id=<optimized out>, detail=<optimized out>) at ../gobject/gsignal.c:3583
+#213 0x00007ffff7ea5e70 in g_application_real_local_command_line (application=0x54c0f0 [GtkApplication], arguments=0x7fffffffd068, exit_status=0x7fffffffd064) at ../gio/gapplication.c:1188
+#214 0x00007ffff7ea6013 in g_application_run (application=0x54c0f0 [GtkApplication], argc=<optimized out>, argv=0x0) at ../gio/gapplication.c:2681
+#215 0x0000000000404eaf in _vala_main (args=0x7fffffffd268, args_length1=1) at ../src/main.vala:34
+#216 0x0000000000404f0a in main (argc=1, argv=0x7fffffffd268) at ../src/main.vala:5
+Quit
+Reading symbols from ./build/src/waydock...
+Starting program: /home/erikreider/Git/fx-dock/build/src/waydock 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[New Thread 0x7fffe6e006c0 (LWP 450934)]
+[New Thread 0x7fffe56006c0 (LWP 450936)]
+[New Thread 0x7fffe4c006c0 (LWP 450937)]
+[New Thread 0x7fffdfe006c0 (LWP 450938)]
+[New Thread 0x7fffdf4006c0 (LWP 450939)]
+[New Thread 0x7fffdea006c0 (LWP 450940)]
+
+Thread 1 "waydock" received signal SIGSEGV, Segmentation fault.
+0x000000000040892d in window_toplevel_focused (self=0x52b580 [Window], toplevel=0x6e57d0) at ../src/window.vala:65
+65	        if (icon.toplevels.find (toplevel) != null) {
+Quit
+Reading symbols from ./build/src/waydock...
+Starting program: /home/erikreider/Git/fx-dock/build/src/waydock 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[New Thread 0x7fffe6e006c0 (LWP 451053)]
+[New Thread 0x7fffe56006c0 (LWP 451055)]
+[New Thread 0x7fffe4c006c0 (LWP 451056)]
+[New Thread 0x7fffdfe006c0 (LWP 451057)]
+[New Thread 0x7fffdf4006c0 (LWP 451058)]
+[New Thread 0x7fffdea006c0 (LWP 451059)]
+
+Thread 1 "waydock" received signal SIGSEGV, Segmentation fault.
+0x0000000000408946 in window_toplevel_focused (self=0x513f90 [Window], toplevel=0x5c04e0) at ../src/window.vala:66
+66	        if (icon.toplevels.find (toplevel) != null) {
+$1 = 0x5c04e0
+$2 = 0
+Reading symbols from ./build/src/waydock...
+Starting program: /home/erikreider/Git/fx-dock/build/src/waydock 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[New Thread 0x7fffe6e006c0 (LWP 451211)]
+[New Thread 0x7fffe56006c0 (LWP 451213)]
+[New Thread 0x7fffe4c006c0 (LWP 451214)]
+[New Thread 0x7fffdfe006c0 (LWP 451215)]
+[New Thread 0x7fffdf4006c0 (LWP 451216)]
+[New Thread 0x7fffdea006c0 (LWP 451217)]
+[New Thread 0x7fffde0006c0 (LWP 451219)]
+[New Thread 0x7fffdd2006c0 (LWP 451221)]
+[New Thread 0x7fffd3e006c0 (LWP 451222)]
+[New Thread 0x7fffc7e006c0 (LWP 451226)]
+[New Thread 0x7fffc74006c0 (LWP 451227)]
+[New Thread 0x7fffc6a006c0 (LWP 451228)]
+[New Thread 0x7fffc60006c0 (LWP 451229)]
+[New Thread 0x7fffc56006c0 (LWP 451230)]
+[New Thread 0x7fffc4c006c0 (LWP 451231)]
+[New Thread 0x7fffbbe006c0 (LWP 451232)]
+[New Thread 0x7fffbb4006c0 (LWP 451233)]
+[New Thread 0x7fffbaa006c0 (LWP 451234)]
+[New Thread 0x7fffba0006c0 (LWP 451235)]
+[New Thread 0x7fffb96006c0 (LWP 451236)]
+[New Thread 0x7fffb8c006c0 (LWP 451237)]
+[New Thread 0x7fffa8c006c0 (LWP 451238)]
+[Thread 0x7fffde0006c0 (LWP 451219) exited]
+[Thread 0x7fffdd2006c0 (LWP 451221) exited]
+[Thread 0x7fffdea006c0 (LWP 451217) exited]
+[New Thread 0x7fffdea006c0 (LWP 451242)]
+[New Thread 0x7fffdd2006c0 (LWP 451244)]
+[New Thread 0x7fffde0006c0 (LWP 451245)]
+[New Thread 0x7fffa3e006c0 (LWP 451246)]
+[New Thread 0x7fffa34006c0 (LWP 451250)]
+[New Thread 0x7fffa2a006c0 (LWP 451251)]
+[New Thread 0x7fffa20006c0 (LWP 451252)]
+[Thread 0x7fffa20006c0 (LWP 451252) exited]
+[Thread 0x7fffa2a006c0 (LWP 451251) exited]
+[Thread 0x7fffa34006c0 (LWP 451250) exited]
+[Thread 0x7fffd3e006c0 (LWP 451222) exited]
+
+Thread 1 "waydock" received signal SIGINT, Interrupt.
+0x00007ffff6d3887d in __GI___poll (fds=0xb9ae20, nfds=2, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+29	  return SYSCALL_CANCEL (poll, fds, nfds, timeout);
+Reading symbols from ./build/src/waydock...
+Starting program: /home/erikreider/Git/fx-dock/build/src/waydock 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[New Thread 0x7fffe6e006c0 (LWP 451402)]
+[New Thread 0x7fffe56006c0 (LWP 451404)]
+[New Thread 0x7fffe4c006c0 (LWP 451405)]
+[New Thread 0x7fffdfe006c0 (LWP 451406)]
+[New Thread 0x7fffdf4006c0 (LWP 451407)]
+[New Thread 0x7fffdea006c0 (LWP 451408)]
+[New Thread 0x7fffde0006c0 (LWP 451410)]
+[New Thread 0x7fffdd2006c0 (LWP 451412)]
+[New Thread 0x7fffd3e006c0 (LWP 451413)]
+[New Thread 0x7fffc7e006c0 (LWP 451415)]
+[New Thread 0x7fffc74006c0 (LWP 451416)]
+[New Thread 0x7fffc6a006c0 (LWP 451417)]
+[New Thread 0x7fffc60006c0 (LWP 451418)]
+[New Thread 0x7fffc56006c0 (LWP 451419)]
+[New Thread 0x7fffc4c006c0 (LWP 451420)]
+[New Thread 0x7fffbbe006c0 (LWP 451421)]
+[New Thread 0x7fffbb4006c0 (LWP 451422)]
+[New Thread 0x7fffbaa006c0 (LWP 451423)]
+[New Thread 0x7fffba0006c0 (LWP 451424)]
+[New Thread 0x7fffb96006c0 (LWP 451425)]
+[New Thread 0x7fffb8c006c0 (LWP 451426)]
+[New Thread 0x7fffa8c006c0 (LWP 451427)]
+[Thread 0x7fffde0006c0 (LWP 451410) exited]
+[Thread 0x7fffdd2006c0 (LWP 451412) exited]
+[Thread 0x7fffdea006c0 (LWP 451408) exited]
+[New Thread 0x7fffdea006c0 (LWP 451431)]
+[New Thread 0x7fffdd2006c0 (LWP 451432)]
+[New Thread 0x7fffde0006c0 (LWP 451433)]
+
+Thread 1 "waydock" received signal SIGINT, Interrupt.
+0x00007ffff6d3887d in __GI___poll (fds=0xb9aee0, nfds=2, timeout=4395) at ../sysdeps/unix/sysv/linux/poll.c:29
+29	  return SYSCALL_CANCEL (poll, fds, nfds, timeout);
+Reading symbols from ./build/src/waydock...
+Starting program: /home/erikreider/Git/fx-dock/build/src/waydock 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[New Thread 0x7fffe6e006c0 (LWP 453640)]
+[New Thread 0x7fffe56006c0 (LWP 453642)]
+[New Thread 0x7fffe4c006c0 (LWP 453643)]
+[New Thread 0x7fffdfe006c0 (LWP 453644)]
+[New Thread 0x7fffdf4006c0 (LWP 453645)]
+[New Thread 0x7fffdea006c0 (LWP 453646)]
+[New Thread 0x7fffde0006c0 (LWP 453648)]
+[New Thread 0x7fffdd2006c0 (LWP 453650)]
+[New Thread 0x7fffd3e006c0 (LWP 453651)]
+[New Thread 0x7fffc7e006c0 (LWP 453653)]
+[New Thread 0x7fffc74006c0 (LWP 453654)]
+[New Thread 0x7fffc6a006c0 (LWP 453655)]
+[New Thread 0x7fffc60006c0 (LWP 453656)]
+[New Thread 0x7fffc56006c0 (LWP 453657)]
+[New Thread 0x7fffc4c006c0 (LWP 453658)]
+[New Thread 0x7fffbbe006c0 (LWP 453659)]
+[New Thread 0x7fffbb4006c0 (LWP 453660)]
+[New Thread 0x7fffbaa006c0 (LWP 453661)]
+[New Thread 0x7fffba0006c0 (LWP 453662)]
+[New Thread 0x7fffb96006c0 (LWP 453663)]
+[New Thread 0x7fffb8c006c0 (LWP 453664)]
+[New Thread 0x7fffa8c006c0 (LWP 453665)]
+[Thread 0x7fffdd2006c0 (LWP 453650) exited]
+[Thread 0x7fffde0006c0 (LWP 453648) exited]
+[Thread 0x7fffdea006c0 (LWP 453646) exited]
+[Thread 0x7fffd3e006c0 (LWP 453651) exited]
+[New Thread 0x7fffd3e006c0 (LWP 454082)]
+[Thread 0x7fffd3e006c0 (LWP 454082) exited]
+[New Thread 0x7fffd3e006c0 (LWP 454584)]
+[Thread 0x7fffd3e006c0 (LWP 454584) exited]
+
+Thread 1 "waydock" received signal SIGINT, Interrupt.
+0x00007ffff6d3887d in __GI___poll (fds=0xb46dd0, nfds=2, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+29	  return SYSCALL_CANCEL (poll, fds, nfds, timeout);

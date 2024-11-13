@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="waydock">
+	<schema id="org.erikreider.waydock" path="/org/erikreider/waydock/">
+		<key name="pinned" type="as">
+			<default>["org.mozilla.firefox", "kitty", "discord"]</default>
+			<description>A list of pinned app_ids</description>
+		</key>
+	</schema>
+</schemalist>

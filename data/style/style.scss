@@ -1,0 +1,56 @@
+$radius: 22px;
+$margin: $radius / 3.14;
+
+.dock {
+  border-radius: $radius;
+  background: #{"alpha(@window_bg_color, 0.5)"};
+
+  & > box {
+    margin: $margin;
+    margin-bottom: 0;
+
+    & > * {
+      margin: 0 3px;
+    }
+  }
+}
+
+.dock-icon {
+  -gtk-icon-size: 48px;
+  & > image {
+    transition: 100ms ease;
+  }
+  padding: $margin / 2;
+
+  &:hover > image {
+    -gtk-icon-filter: brightness(1.2);
+  }
+
+  & > .num_open_box {
+    margin-top: 2px;
+
+    & > .circle {
+      background-color: #{"alpha(@theme_text_color, 0.8)"};
+      border-radius: 100%;
+      min-width: 6px;
+      min-height: 6px;
+    }
+  }
+}
+
+.popover-item {
+  & > box {
+    margin: 6px;
+  }
+
+  &:hover {
+    background: #{"alpha(@accent_bg_color, 0.2)"};
+  }
+}
+
+.popover-image {
+  -gtk-icon-size: 48px;
+}
+
+.popover-label {
+}
