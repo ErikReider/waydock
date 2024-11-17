@@ -27,6 +27,8 @@ $margin: $radius / 3.14;
   }
 
   & > .num_open_box {
+    $min-size: 6px;
+    min-height: 6px;
     margin-top: 2px;
 
     & > .circle {
