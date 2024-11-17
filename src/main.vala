@@ -4,11 +4,20 @@ static WlrForeignHelper foreign_helper;
 
 static List<string> pinned;
 
+static List<AppInfo> all_app_infos;
+
 public static int main (string[] args) {
     Gtk.init ();
     Adw.init ();
 
     self_settings = new Settings ("org.erikreider.swaync");
+
+    // All app infos
+    all_app_infos = AppInfo.get_all ();
+    AppInfoMonitor app_info_monitor = AppInfoMonitor.get ();
+    app_info_monitor.changed.connect (() => {
+        all_app_infos = AppInfo.get_all ();
+    });
 
     foreign_helper = new WlrForeignHelper ();
 
@@ -70,7 +79,7 @@ public static unowned Wl.Display get_wl_display () {
     GLib.error ("Only supports Wayland!");
 }
 
-public static void set_image_icon_from_app_info (DesktopAppInfo app_info,
+public static void set_image_icon_from_app_info (DesktopAppInfo ? app_info,
                                                  string app_id,
                                                  Gtk.Image image) {
     // Fallback
@@ -140,6 +149,18 @@ public static DesktopAppInfo ? get_app_info (string app_id) {
             }
         }
         strfreev (scores);
+    }
+
+    foreach (var app_info in all_app_infos) {
+        if (!(app_info is DesktopAppInfo)) {
+            continue;
+        }
+        DesktopAppInfo info = (DesktopAppInfo) app_info;
+        string desktop_name = "%s.desktop".printf (app_id);
+    
+        if (Path.get_basename (info.filename).contains (desktop_name)) {
+            return info;
+        }
     }
 
     return null;
