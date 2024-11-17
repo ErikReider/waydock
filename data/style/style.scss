@@ -1,5 +1,6 @@
 $radius: 22px;
 $margin: $radius / 3.14;
+$transiton_delay: 100ms;
 
 .dock {
   border-radius: $radius;
@@ -18,7 +19,7 @@ $margin: $radius / 3.14;
 .dock-icon {
   -gtk-icon-size: 48px;
   & > image {
-    transition: 100ms ease;
+    transition: $transiton_delay ease;
   }
   padding: $margin / 2;
 
@@ -32,10 +33,11 @@ $margin: $radius / 3.14;
     margin-top: 2px;
 
     & > .circle {
-      background-color: #{"alpha(@theme_text_color, 0.8)"};
-      border-radius: 100%;
+      transition: $transiton_delay ease;
       min-width: 6px;
       min-height: 6px;
+      border-radius: $min-size;
+      background-color: #{"alpha(@theme_text_color, 0.8)"};
     }
   }
 }
