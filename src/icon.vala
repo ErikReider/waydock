@@ -4,9 +4,9 @@ class Icon : Gtk.Box {
     public DesktopAppInfo ? app_info;
     public bool pinned = false;
 
-    Gtk.GestureClick gesture_click = new Gtk.GestureClick ();
     private string app_name;
 
+    Gtk.GestureClick gesture_click = new Gtk.GestureClick ();
     Gtk.Box num_open_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
 
     public Icon (string app_id) {
@@ -19,20 +19,23 @@ class Icon : Gtk.Box {
 
         add_css_class ("dock-icon");
 
-        gesture_click.pressed.connect (() => {
-            // Check if only there's only 1 item
-            uint length = toplevels.length ();
-            if (length == 0) {
-                try {
-                    app_info.launch (null, new AppLaunchContext ());
-                } catch (Error e) {
-                    error ("Launch error: %s", e.message);
-                }
-            } else if (length == 1) {
-                WlrForeignHelper.activate_toplevel (toplevels.nth_data (0));
-            } else {
-                // Show window picker popover
-                show_popover ();
+        gesture_click.set_button (0);
+        gesture_click.released.connect (() => {
+            uint button = gesture_click.get_current_button ();
+            if (button <= 0) {
+                warning ("Button: %u pressed, ignoring...", button);
+                return;
+            }
+            switch (button) {
+            case 1:
+                left_click ();
+                break;
+            case 2:
+                middle_click ();
+                break;
+            case 3:
+                right_click ();
+                break;
             }
         });
         add_controller (gesture_click);
@@ -66,6 +69,38 @@ class Icon : Gtk.Box {
         popover.set_position (Gtk.PositionType.TOP);
 
         popover.popup ();
+    }
+
+    private void launch_application () {
+        if (app_info == null) {
+            return;
+        }
+        try {
+            app_info.launch (null, new AppLaunchContext ());
+        } catch (Error e) {
+            error ("Launch error: %s", e.message);
+        }
+    }
+
+    private void left_click () {
+        // Check if only there's only 1 item
+        uint length = toplevels.length ();
+        if (length == 0) {
+            launch_application ();
+        } else if (length == 1) {
+            WlrForeignHelper.activate_toplevel (toplevels.nth_data (0));
+        } else {
+            // Show window picker popover
+            show_popover ();
+        }
+    }
+
+    private void middle_click () {
+        launch_application ();
+    }
+
+    private void right_click () {
+        // TODO: Right click
     }
 
     private void refresh_name () {
@@ -133,5 +168,3 @@ class Icon : Gtk.Box {
         return toplevels.is_empty ();
     }
 }
-
-
