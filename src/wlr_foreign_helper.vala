@@ -5,7 +5,7 @@ public class Toplevel {
 
     public string title;
     public string app_id;
-    public Handle parent;
+    public Toplevel *parent;
 
     public bool fullscreen = false;
     public bool activated = false;
@@ -202,7 +202,12 @@ public class WlrForeignHelper : Object {
     private static void handle_parent (void * data, Handle handle,
                                        Handle ? parent) {
         Toplevel * toplevel = (Toplevel *) data;
-        // TODO: Parent
+        toplevel->parent = null;
+        if (parent != null) {
+            toplevel->parent = parent.get_user_data ();
+            // TODO: Handle parent
+            print ("PARENT: %p %s: %p\n", handle, toplevel->app_id, parent);
+        }
     }
 
     // TODO: handle.set_rectangle for minimization animation target (dock surface, dock surface relative position)
