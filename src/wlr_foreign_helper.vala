@@ -147,6 +147,9 @@ public class WlrForeignHelper : Object {
     private static void handle_state (void * data, Handle handle,
                                       Wl.Array states) {
         Toplevel * toplevel = (Toplevel *) data;
+
+        bool initial_activated_state = toplevel->activated;
+
         toplevel->maximized = false;
         toplevel->minimized = false;
         toplevel->activated = false;
@@ -167,12 +170,14 @@ public class WlrForeignHelper : Object {
                     break;
                 case state.ACTIVATED:
                     toplevel->activated = true;
-                    foreign_helper.toplevel_focused (toplevel);
                     break;
                 case state.FULLSCREEN:
                     toplevel->fullscreen = true;
                     break;
             }
+        }
+        if (initial_activated_state != toplevel->activated) {
+            foreign_helper.toplevel_focused (toplevel);
         }
     }
 
