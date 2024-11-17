@@ -121,6 +121,11 @@ class Icon : Gtk.Box {
         refresh ();
     }
 
+    public void move_to_front (Toplevel * toplevel) {
+        toplevels.remove (toplevel);
+        toplevels.insert (toplevel, 0);
+    }
+
     /// Returns true if there are no toplevels left
     public bool remove_toplevel (owned Toplevel toplevel) {
         toplevels.remove (toplevel);
