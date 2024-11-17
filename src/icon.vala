@@ -5,6 +5,7 @@ class Icon : Gtk.Box {
     public bool pinned = false;
 
     Gtk.GestureClick gesture_click = new Gtk.GestureClick ();
+    private string app_name;
 
     Gtk.Box num_open_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
 
@@ -12,6 +13,7 @@ class Icon : Gtk.Box {
         Object (orientation : Gtk.Orientation.VERTICAL, spacing: 4);
 
         this.app_id = app_id;
+        this.app_name = app_id;
 
         app_info = get_app_info (app_id);
 
@@ -43,8 +45,7 @@ class Icon : Gtk.Box {
         num_open_box.add_css_class ("num_open_box");
         append (num_open_box);
 
-        // TODO: Popover tooltips instead to always make them appear above the dock
-        set_tooltip ();
+        refresh ();
     }
 
     private void show_popover () {
@@ -67,16 +68,24 @@ class Icon : Gtk.Box {
         popover.popup ();
     }
 
-    private void set_tooltip () {
-        string name = app_id;
+    private void refresh_name () {
         if (app_info != null) {
-            name = app_info.get_display_name ();
-        }
-
-        if (toplevels.length () <= 1) {
-            set_tooltip_text (name);
+            app_name = app_info.get_display_name ();
         } else {
-            set_tooltip_text ("%s - %u".printf (name, toplevels.length ()));
+            unowned var link = toplevels.first ();
+            if (link != null && link.data != null && link.data->title != null) {
+                app_name = link.data->title;
+            } else {
+                app_name = app_id;
+            }
+        }
+    }
+
+    private void set_tooltip () {
+        if (toplevels.length () <= 1) {
+            set_tooltip_text (app_name);
+        } else {
+            set_tooltip_text ("%s - %u".printf (app_name, toplevels.length ()));
         }
     }
 
@@ -95,6 +104,13 @@ class Icon : Gtk.Box {
         }
     }
 
+    public void refresh () {
+        refresh_name ();
+        set_running_circles ();
+        // TODO: Popover tooltips instead to always make them appear above the dock
+        set_tooltip ();
+    }
+
     public void add_toplevel (Toplevel * toplevel) {
         toplevels.append (toplevel);
         if (app_id == null) {
@@ -102,14 +118,13 @@ class Icon : Gtk.Box {
         }
         assert (app_id != null && toplevel->app_id == app_id);
 
-        set_running_circles ();
-        set_tooltip ();
+        refresh ();
     }
 
     /// Returns true if there are no toplevels left
     public bool remove_toplevel (owned Toplevel toplevel) {
         toplevels.remove (toplevel);
-        set_running_circles ();
+        refresh ();
         return toplevels.is_empty ();
     }
 }

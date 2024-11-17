@@ -83,6 +83,7 @@ public class Window : Gtk.ApplicationWindow {
 
         icon.toplevels.remove (toplevel);
         icon.toplevels.insert (toplevel, 0);
+        icon.refresh ();
     }
 
     private void toplevel_added (Toplevel * toplevel) {
