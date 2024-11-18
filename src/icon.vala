@@ -125,12 +125,36 @@ class Icon : Gtk.Box {
         popover.popup ();
     }
 
+    private void detach_child () {
+        Posix.setsid ();
+
+        Posix.FILE ? file = Posix.FILE.open ("/dev/null", "w+b");
+        int fd = file.fileno ();
+        (unowned Posix.FILE)[] streams = { Posix.stdin, Posix.stdout, Posix.stderr };
+        foreach (var stream in streams) {
+            int stream_fd = stream.fileno ();
+            stream.close ();
+            Posix.dup2 (fd, stream_fd);
+        }
+    }
+
     private void launch_application () {
         if (app_info == null) {
             return;
         }
         try {
-            app_info.launch (null, new AppLaunchContext ());
+            string[] spawn_env = Environ.get ();
+            string[] argvp = {};
+            Shell.parse_argv (app_info.get_commandline (), out argvp);
+            Pid pid;
+
+            Process.spawn_async (
+                null,
+                argvp,
+                spawn_env,
+                SpawnFlags.SEARCH_PATH_FROM_ENVP | SpawnFlags.SEARCH_PATH,
+                detach_child,
+                out pid);
         } catch (Error e) {
             error ("Launch error: %s", e.message);
         }
