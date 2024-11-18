@@ -1,6 +1,7 @@
 class IconState : Object {
     public string app_id;
     public bool pinned;
+    public bool minimized = false;
 
     public List<Toplevel *> toplevels;
 
@@ -28,6 +29,14 @@ class IconState : Object {
         toplevels.remove (toplevel);
         refresh ();
         return toplevels.is_empty ();
+    }
+
+    public Toplevel * get_first_toplevel () {
+        unowned List<Toplevel *> first_link = toplevels.first ();
+        if (first_link == null) {
+            return null;
+        }
+        return first_link.data;
     }
 }
 
@@ -87,7 +96,7 @@ class Icon : Gtk.Box {
     private void click_listener () {
         uint button = gesture_click.get_current_button ();
         if (button <= 0) {
-            warning ("Button: %u pressed, ignoring...", button);
+            debug ("Button: %u pressed, ignoring...", button);
             return;
         }
         switch (button) {

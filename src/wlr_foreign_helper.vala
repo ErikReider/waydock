@@ -46,6 +46,7 @@ public class WlrForeignHelper : Object {
 
     public signal void toplevel_changed (Toplevel * toplevel);
     public signal void toplevel_focused (Toplevel * toplevel);
+    public signal void toplevel_minimize (Toplevel * toplevel);
     public signal void toplevel_added (Toplevel * toplevel);
     public signal void toplevel_removed (owned Toplevel toplevel);
 
@@ -148,6 +149,7 @@ public class WlrForeignHelper : Object {
                                       Wl.Array states) {
         Toplevel * toplevel = (Toplevel *) data;
 
+        bool initial_minimized_state = toplevel->minimized;
         bool initial_activated_state = toplevel->activated;
 
         toplevel->maximized = false;
@@ -175,6 +177,9 @@ public class WlrForeignHelper : Object {
                     toplevel->fullscreen = true;
                     break;
             }
+        }
+        if (initial_minimized_state != toplevel->minimized) {
+            foreign_helper.toplevel_minimize (toplevel);
         }
         if (initial_activated_state != toplevel->activated) {
             foreign_helper.toplevel_focused (toplevel);

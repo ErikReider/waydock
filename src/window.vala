@@ -32,30 +32,9 @@ public class Window : Gtk.ApplicationWindow {
         set_css_name ("dock");
         add_css_class ("dock");
 
-        Gtk.Sorter sorter = new Gtk.CustomSorter ((a, b) => {
-            IconState id_a = (IconState) a;
-            IconState id_b = (IconState) b;
-
-            if (id_a.pinned && !id_b.pinned) {
-                return -1;
-            } else if (!id_a.pinned && id_b.pinned) {
-                return 1;
-            }
-            return 0;
-        });
+        Gtk.Sorter sorter = new Gtk.CustomSorter (sorter_function);
         var sorted_list = new Gtk.SortListModel (list_store, sorter);
-        Gtk.Sorter section_sorter = new Gtk.CustomSorter ((a, b) => {
-            IconState id_a = (IconState) a;
-            IconState id_b = (IconState) b;
-
-            if (id_a.pinned && !id_b.pinned) {
-                return -1;
-            } else if (!id_a.pinned && id_b.pinned) {
-                return 1;
-            }
-            // TODO: Minimized toplevels go last
-            return 0;
-        });
+        Gtk.Sorter section_sorter = new Gtk.CustomSorter (sorter_function);
         sorted_list.set_section_sorter (section_sorter);
 
         var factory = new Gtk.SignalListItemFactory ();
@@ -105,6 +84,7 @@ public class Window : Gtk.ApplicationWindow {
 
         foreign_helper.toplevel_changed.connect (toplevel_changed);
         foreign_helper.toplevel_focused.connect (toplevel_focused);
+        foreign_helper.toplevel_minimize.connect (toplevel_minimize);
         foreign_helper.toplevel_added.connect (toplevel_added);
         foreign_helper.toplevel_removed.connect (toplevel_removed);
 
@@ -127,7 +107,7 @@ public class Window : Gtk.ApplicationWindow {
         } else {
             for (uint i = 0; i < list_store.n_items; i++) {
                 IconState iter_state = (IconState) list_store.get_item (i);
-                if (iter_state.app_id == toplevel->app_id) {
+                if (!iter_state.minimized && iter_state.app_id == toplevel->app_id) {
                     state = iter_state;
                     break;
                 }
@@ -138,11 +118,45 @@ public class Window : Gtk.ApplicationWindow {
         state.refresh ();
     }
 
+    private void toplevel_minimize (Toplevel * toplevel) {
+        if (toplevel == null || !toplevel->done) {
+            return;
+        }
+
+        if (toplevel->minimized) {
+            IconState state = new IconState (toplevel->app_id, false);
+            state.minimized = true;
+            state.add_toplevel (toplevel);
+            list_store.append (state);
+        } else {
+            for (uint i = 0; i < list_store.n_items; i++) {
+                IconState state = (IconState) list_store.get_item (i);
+                Toplevel * first_toplevel = state.get_first_toplevel ();
+                if (first_toplevel == null) {
+                    continue;
+                }
+                if (state.minimized && first_toplevel == toplevel) {
+                    uint pos;
+                    if (list_store.find (state, out pos)) {
+                        list_store.remove (pos);
+                    } else {
+                        error ("Could not find ID in ListStore");
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
     private void toplevel_added (Toplevel * toplevel) {
+        if (toplevel->minimized) {
+            toplevel_minimize (toplevel);
+        }
+
         // Check if icon with app_id already exists
         for (uint i = 0; i < list_store.n_items; i++) {
             IconState state = (IconState) list_store.get_item (i);
-            if (state.app_id == toplevel->app_id) {
+            if (!state.minimized && state.app_id == toplevel->app_id) {
                 toplevel->data = state;
                 state.add_toplevel (toplevel);
                 return;
@@ -157,11 +171,29 @@ public class Window : Gtk.ApplicationWindow {
     }
 
     private void toplevel_removed (owned Toplevel toplevel) {
+        // Remove all minimized icons with Toplevel
+        for (uint i = 0; i < list_store.n_items; i++) {
+            IconState state = (IconState) list_store.get_item (i);
+            Toplevel * first_toplevel = state.get_first_toplevel ();
+            if (first_toplevel == null) {
+                continue;
+            }
+            if (state.minimized && first_toplevel == toplevel) {
+                uint pos;
+                if (list_store.find (state, out pos)) {
+                    list_store.remove (pos);
+                } else {
+                    error ("Could not find ID in ListStore");
+                }
+                // NOTE: Don't break here, we want to remove all minimized Icons of Toplevel
+            }
+        }
+
         unowned IconState state = (IconState) toplevel.data;
         if (state == null) {
             for (uint i = 0; i < list_store.n_items; i++) {
                 IconState iter_state = (IconState) list_store.get_item (i);
-                if (iter_state.app_id == toplevel.app_id) {
+                if (!iter_state.minimized && iter_state.app_id == toplevel.app_id) {
                     state = iter_state;
                     break;
                 }
@@ -183,5 +215,24 @@ public class Window : Gtk.ApplicationWindow {
                 }
             }
         }
+    }
+
+    private int sorter_function (void * a, void * b) {
+        unowned IconState id_a = (IconState) a;
+        unowned IconState id_b = (IconState) b;
+
+        // Minimized Toplevels go last
+        if (id_a.minimized && !id_b.minimized) {
+            return 1;
+        } else if (!id_a.minimized && id_b.minimized) {
+            return -1;
+        }
+
+        if (id_a.pinned && !id_b.pinned) {
+            return -1;
+        } else if (!id_a.pinned && id_b.pinned) {
+            return 1;
+        }
+        return 0;
     }
 }
