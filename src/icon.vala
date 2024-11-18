@@ -1,32 +1,96 @@
+class IconState : Object {
+    public string app_id;
+    public bool pinned;
+
+    public List<Toplevel *> toplevels;
+
+    public signal void refresh ();
+    public signal void toplevel_added (Toplevel * toplevel);
+
+    public IconState (string app_id, bool pinned) {
+        this.app_id = app_id;
+        this.pinned = pinned;
+        this.toplevels = new List<Toplevel *> ();
+    }
+
+    public void move_to_front (Toplevel * toplevel) {
+        toplevels.remove (toplevel);
+        toplevels.insert (toplevel, 0);
+    }
+
+    public void add_toplevel (Toplevel * toplevel) {
+        toplevels.append (toplevel);
+        toplevel_added (toplevel);
+    }
+
+    /// Returns true if there are no toplevels left
+    public bool remove_toplevel (owned Toplevel toplevel) {
+        toplevels.remove (toplevel);
+        refresh ();
+        return toplevels.is_empty ();
+    }
+}
+
 class Icon : Gtk.Box {
-    public List<Toplevel *> toplevels = new List<Toplevel *> ();
-    public string ? app_id { get; private set; default = null; }
+    public unowned IconState ? state { get; private set; default = null; }
     public DesktopAppInfo ? app_info;
-    public bool pinned = false;
 
     private string app_name;
 
-    Gtk.GestureClick gesture_click = new Gtk.GestureClick ();
-    Gtk.Box num_open_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
+    Gtk.GestureClick gesture_click;
 
-    public Icon (string app_id) {
-        Object (orientation : Gtk.Orientation.VERTICAL, spacing: 4);
+    private Gtk.Image image;
+    private Gtk.Box num_open_box;
 
-        this.app_id = app_id;
-        this.app_name = app_id;
-
-        app_info = get_app_info (app_id);
+    public Icon () {
+        Object (orientation : Gtk.Orientation.VERTICAL, spacing : 4);
 
         add_css_class ("dock-icon");
 
+        image = new Gtk.Image ();
+        append (image);
+
+        num_open_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
+        num_open_box.set_halign (Gtk.Align.CENTER);
+        num_open_box.add_css_class ("num_open_box");
+        append (num_open_box);
+    }
+
+    public void init (IconState id) {
+        this.state = id;
+        this.app_name = id.app_id;
+
+        app_info = get_app_info (id.app_id);
+
+        gesture_click = new Gtk.GestureClick ();
         gesture_click.set_button (0);
-        gesture_click.released.connect (() => {
-            uint button = gesture_click.get_current_button ();
-            if (button <= 0) {
-                warning ("Button: %u pressed, ignoring...", button);
-                return;
-            }
-            switch (button) {
+        gesture_click.released.connect (click_listener);
+        add_controller (gesture_click);
+
+        set_image_icon_from_app_info (app_info, id.app_id, image);
+
+        listen_to_signals ();
+
+        refresh ();
+    }
+
+    public void listen_to_signals () {
+        state.refresh.connect (refresh);
+        state.toplevel_added.connect (toplevel_added);
+    }
+
+    public void disconnect_from_signals () {
+        state.refresh.disconnect (refresh);
+        state.toplevel_added.disconnect (toplevel_added);
+    }
+
+    private void click_listener () {
+        uint button = gesture_click.get_current_button ();
+        if (button <= 0) {
+            warning ("Button: %u pressed, ignoring...", button);
+            return;
+        }
+        switch (button) {
             case 1:
                 left_click ();
                 break;
@@ -36,19 +100,9 @@ class Icon : Gtk.Box {
             case 3:
                 right_click ();
                 break;
-            }
-        });
-        add_controller (gesture_click);
-
-        Gtk.Image image = new Gtk.Image ();
-        set_image_icon_from_app_info (app_info, app_id, image);
-        append (image);
-
-        num_open_box.set_halign (Gtk.Align.CENTER);
-        num_open_box.add_css_class ("num_open_box");
-        append (num_open_box);
-
-        refresh ();
+            default:
+                break;
+        }
     }
 
     private void show_popover () {
@@ -84,11 +138,11 @@ class Icon : Gtk.Box {
 
     private void left_click () {
         // Check if only there's only 1 item
-        uint length = toplevels.length ();
+        uint length = state.toplevels.length ();
         if (length == 0) {
             launch_application ();
         } else if (length == 1) {
-            WlrForeignHelper.activate_toplevel (toplevels.nth_data (0));
+            WlrForeignHelper.activate_toplevel (state.toplevels.nth_data (0));
         } else {
             // Show window picker popover
             show_popover ();
@@ -107,20 +161,20 @@ class Icon : Gtk.Box {
         if (app_info != null) {
             app_name = app_info.get_display_name ();
         } else {
-            unowned var link = toplevels.first ();
+            unowned var link = state.toplevels.first ();
             if (link != null && link.data != null && link.data->title != null) {
                 app_name = link.data->title;
             } else {
-                app_name = app_id;
+                app_name = state.app_id;
             }
         }
     }
 
     private void set_tooltip () {
-        if (toplevels.length () <= 1) {
+        if (state.toplevels.length () <= 1) {
             set_tooltip_text (app_name);
         } else {
-            set_tooltip_text ("%s - %u".printf (app_name, toplevels.length ()));
+            set_tooltip_text ("%s - %u".printf (app_name, state.toplevels.length ()));
         }
     }
 
@@ -131,7 +185,7 @@ class Icon : Gtk.Box {
             num_open_box.remove (widget);
         }
 
-        uint length = toplevels.length ().clamp (0, 3);
+        uint length = state.toplevels.length ().clamp (0, 3);
         for (uint i = 0; i < length; i++) {
             Adw.Bin circle = new Adw.Bin ();
             circle.add_css_class ("circle");
@@ -146,25 +200,12 @@ class Icon : Gtk.Box {
         set_tooltip ();
     }
 
-    public void add_toplevel (Toplevel * toplevel) {
-        toplevels.append (toplevel);
-        if (app_id == null) {
-            app_id = toplevel->app_id;
+    public void toplevel_added (Toplevel * toplevel) {
+        if (state != null && state.app_id == null) {
+            state.app_id = toplevel->app_id;
         }
-        assert (app_id != null && toplevel->app_id == app_id);
+        assert (state != null && toplevel->app_id == state.app_id);
 
         refresh ();
-    }
-
-    public void move_to_front (Toplevel * toplevel) {
-        toplevels.remove (toplevel);
-        toplevels.insert (toplevel, 0);
-    }
-
-    /// Returns true if there are no toplevels left
-    public bool remove_toplevel (owned Toplevel toplevel) {
-        toplevels.remove (toplevel);
-        refresh ();
-        return toplevels.is_empty ();
     }
 }

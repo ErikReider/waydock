@@ -2,11 +2,9 @@ public class Window : Gtk.ApplicationWindow {
     private const int margin = 6;
     private const int dock_min_size = margin * 2;
 
-    private Gtk.Box box;
-    private Gtk.Box pinned_box;
-    private Gtk.Box running_box;
+    private ListStore list_store = new ListStore (typeof (IconState));
 
-    private List<unowned Icon> toplevel_icons = new List<unowned Icon> ();
+    private Gtk.ListView list;
 
     public Window (Gtk.Application app) {
         Object (application: app);
@@ -31,24 +29,78 @@ public class Window : Gtk.ApplicationWindow {
         set_halign (Gtk.Align.CENTER);
         set_resizable (false); // Fixes centered position not resetting
 
-        box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 12);
-        box.set_halign (Gtk.Align.CENTER);
-        box.set_hexpand (false);
         set_css_name ("dock");
         add_css_class ("dock");
-        this.set_child (box);
 
-        pinned_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        box.append (pinned_box);
+        Gtk.Sorter sorter = new Gtk.CustomSorter ((a, b) => {
+            IconState id_a = (IconState) a;
+            IconState id_b = (IconState) b;
 
-        running_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
-        box.append (running_box);
+            if (id_a.pinned && !id_b.pinned) {
+                return -1;
+            } else if (!id_a.pinned && id_b.pinned) {
+                return 1;
+            }
+            return 0;
+        });
+        var sorted_list = new Gtk.SortListModel (list_store, sorter);
+        Gtk.Sorter section_sorter = new Gtk.CustomSorter ((a, b) => {
+            IconState id_a = (IconState) a;
+            IconState id_b = (IconState) b;
 
+            if (id_a.pinned && !id_b.pinned) {
+                return -1;
+            } else if (!id_a.pinned && id_b.pinned) {
+                return 1;
+            }
+            // TODO: Minimized toplevels go last
+            return 0;
+        });
+        sorted_list.set_section_sorter (section_sorter);
+
+        var factory = new Gtk.SignalListItemFactory ();
+        factory.setup.connect ((factory, object) => {
+            Gtk.ListItem item = (Gtk.ListItem) object;
+            item.set_child (new Icon ());
+        });
+        factory.bind.connect ((factory, object) => {
+            Gtk.ListItem item = (Gtk.ListItem) object;
+            unowned Icon icon = (Icon) item.get_child ();
+            unowned IconState id = (IconState) item.get_item ();
+            icon.init (id);
+        });
+        factory.unbind.connect ((factory, object) => {
+            Gtk.ListItem item = (Gtk.ListItem) object;
+            unowned Icon icon = (Icon) item.get_child ();
+            icon.disconnect_from_signals ();
+        });
+
+        var header_factory = new Gtk.SignalListItemFactory ();
+        header_factory.setup.connect ((factory, object) => {
+            Gtk.ListHeader item = (Gtk.ListHeader) object;
+            item.set_child (new Gtk.Separator (Gtk.Orientation.VERTICAL));
+        });
+        header_factory.bind.connect ((factory, object) => {
+            Gtk.ListHeader item = (Gtk.ListHeader) object;
+            if (item.start == 0) {
+                item.get_child ().set_visible (false);
+            }
+        });
+        header_factory.unbind.connect ((factory, object) => {
+            Gtk.ListHeader item = (Gtk.ListHeader) object;
+            item.get_child ().set_visible (true);
+        });
+
+        Gtk.NoSelection no_selection = new Gtk.NoSelection (sorted_list);
+        list = new Gtk.ListView (no_selection, factory);
+        list.set_orientation (Gtk.Orientation.HORIZONTAL);
+        list.set_header_factory (header_factory);
+        set_child (list);
+
+        // Insert pinned icons
         foreach (string app_id in pinned) {
-            Icon icon = new Icon (app_id);
-            icon.pinned = true;
-            toplevel_icons.append (icon);
-            pinned_box.append (icon);
+            IconState state = new IconState (app_id, true);
+            list_store.append (state);
         }
 
         foreign_helper.toplevel_changed.connect (toplevel_changed);
@@ -69,62 +121,66 @@ public class Window : Gtk.ApplicationWindow {
             return;
         }
 
-        Icon icon = null;
+        IconState ? state = null;
         if (toplevel->data != null) {
-            icon = (Icon) toplevel->data;
+            state = (IconState) toplevel->data;
         } else {
-            foreach (unowned Icon iter_icon in toplevel_icons) {
-                if (iter_icon.app_id == toplevel->app_id) {
-                    icon = iter_icon;
+            for (uint i = 0; i < list_store.n_items; i++) {
+                IconState iter_state = (IconState) list_store.get_item (i);
+                if (iter_state.app_id == toplevel->app_id) {
+                    state = iter_state;
                     break;
                 }
             }
         }
 
-        icon.move_to_front (toplevel);
-        icon.refresh ();
+        state.move_to_front (toplevel);
+        state.refresh ();
     }
 
     private void toplevel_added (Toplevel * toplevel) {
         // Check if icon with app_id already exists
-        foreach (unowned Icon icon in toplevel_icons) {
-            if (icon.app_id == toplevel->app_id) {
-                toplevel->data = icon;
-                icon.add_toplevel (toplevel);
+        for (uint i = 0; i < list_store.n_items; i++) {
+            IconState state = (IconState) list_store.get_item (i);
+            if (state.app_id == toplevel->app_id) {
+                toplevel->data = state;
+                state.add_toplevel (toplevel);
                 return;
             }
         }
 
         // No previous icon with app_id exists, create a new one
-        Icon icon = new Icon (toplevel->app_id);
-        toplevel_icons.append (icon);
-        running_box.append (icon);
-
-        icon.add_toplevel (toplevel);
-        toplevel->data = icon;
+        IconState state = new IconState (toplevel->app_id, false);
+        toplevel->data = state;
+        state.add_toplevel (toplevel);
+        list_store.append (state);
     }
 
     private void toplevel_removed (owned Toplevel toplevel) {
-        unowned Icon icon = null;
-        if (toplevel.data != null) {
-            icon = (Icon) toplevel.data;
-        } else {
-            foreach (unowned Icon iter_icon in toplevel_icons) {
-                if (iter_icon.app_id == toplevel.app_id) {
-                    icon = iter_icon;
+        unowned IconState state = (IconState) toplevel.data;
+        if (state == null) {
+            for (uint i = 0; i < list_store.n_items; i++) {
+                IconState iter_state = (IconState) list_store.get_item (i);
+                if (iter_state.app_id == toplevel.app_id) {
+                    state = iter_state;
                     break;
                 }
             }
         }
 
-        if (icon == null) {
+        // Could not find, must already be destroyed
+        if (state == null) {
             return;
         }
 
-        if (icon.remove_toplevel (toplevel)) {
-            if (!icon.pinned) {
-                running_box.remove (icon);
-                toplevel_icons.remove (icon);
+        if (state.remove_toplevel (toplevel)) {
+            if (!state.pinned) {
+                uint pos;
+                if (list_store.find (state, out pos)) {
+                    list_store.remove (pos);
+                } else {
+                    error ("Could not find ID in ListStore");
+                }
             }
         }
     }

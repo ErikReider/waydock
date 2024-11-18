@@ -1,17 +1,32 @@
 $radius: 22px;
 $margin: $radius / 3.14;
 $transiton_delay: 100ms;
+$open_box_size: 6px;
 
 .dock {
   border-radius: $radius;
   background: #{"alpha(@window_bg_color, 0.5)"};
 
-  & > box {
+  & > listview {
     margin: $margin;
     margin-bottom: 0;
+    background: transparent;
 
-    & > * {
+    & > row {
       margin: 0 3px;
+
+      &:hover {
+        background: initial;
+      }
+    }
+
+    & > header {
+      padding: $margin 0;
+      padding-bottom: $margin + $open_box_size;
+
+      & > separator {
+        margin: 0 $margin;
+      }
     }
   }
 }
@@ -28,15 +43,14 @@ $transiton_delay: 100ms;
   }
 
   & > .num_open_box {
-    $min-size: 6px;
-    min-height: 6px;
+    min-height: $open_box_size;
     margin-top: 2px;
 
     & > .circle {
       transition: $transiton_delay ease;
-      min-width: 6px;
-      min-height: 6px;
-      border-radius: $min-size;
+      min-width: $open_box_size;
+      min-height: $open_box_size;
+      border-radius: $open_box_size;
       background-color: #{"alpha(@theme_text_color, 0.8)"};
     }
   }

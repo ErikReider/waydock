@@ -11,7 +11,7 @@ class DockPopover : Gtk.Popover {
 
         Gtk.FlowBox popover_box = new Gtk.FlowBox ();
         popover_box.set_max_children_per_line (3);
-        uint length = icon.toplevels.length ();
+        uint length = icon.state.toplevels.length ();
         if (length < per_line) {
             popover_box.set_max_children_per_line (length);
         }
@@ -20,16 +20,16 @@ class DockPopover : Gtk.Popover {
         popover_box.set_column_spacing (12);
         popover_box.set_selection_mode (Gtk.SelectionMode.NONE);
         popover_box.child_activated.connect ((child) => {
-            Toplevel *toplevel = child.get_data<Toplevel*> ("toplevel");
+            Toplevel * toplevel = child.get_data<Toplevel *> ("toplevel");
             WlrForeignHelper.activate_toplevel (toplevel);
             popdown ();
         });
         set_child (popover_box);
 
-        foreach (Toplevel * toplevel in icon.toplevels) {
+        foreach (Toplevel * toplevel in icon.state.toplevels) {
             var child = new Gtk.FlowBoxChild ();
             child.add_css_class ("popover-item");
-            child.set_data<Toplevel*> ("toplevel", toplevel);
+            child.set_data<Toplevel *> ("toplevel", toplevel);
             popover_box.append (child);
 
             var box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
