@@ -120,11 +120,13 @@ public static void get_pinned () {
 }
 
 public static DesktopAppInfo ? get_app_info (string app_id) {
+    string app_id_down = app_id.down ();
+
     // Try to get the desktop file directly
     string[] entries = {};
     if (app_id != null) {
         entries += app_id;
-        entries += app_id.down ();
+        entries += app_id_down;
     }
     foreach (string entry in entries) {
         var app_info = new DesktopAppInfo ("%s.desktop".printf (entry));
@@ -137,30 +139,44 @@ public static DesktopAppInfo ? get_app_info (string app_id) {
     // Try searching for desktop file instead
     string * *[] result = DesktopAppInfo.search (app_id);
     foreach (var scores in result) {
+        DesktopAppInfo ? first_choice = null;
+        DesktopAppInfo ? second_choice = null;
         for (int i = 0; i < strv_length ((string *[]) scores); i++) {
+            if (first_choice != null && second_choice != null) {
+                break;
+            }
+
             string * entry = scores[i];
-            if (entry->down ().contains (app_id.down ())) {
+
+            string[] split = entry->down ().split (".");
+            if (first_choice == null && app_id_down in split) {
+                first_choice = new DesktopAppInfo (entry);
+                continue;
+            }
+            if (second_choice == null) {
+                if (entry->down ().contains (app_id_down)) {
+                    second_choice = new DesktopAppInfo (entry);
+                    continue;
+                }
+                // Backup, check executable name
                 var app_info = new DesktopAppInfo (entry);
-                // Checks if the .desktop file actually exists or not
-                if (app_info is DesktopAppInfo) {
-                    strfreev (scores);
-                    return app_info;
+                if (app_info.get_startup_wm_class () == app_id) {
+                    second_choice = app_info;
+                } else if (app_info.get_name ().down () == app_id_down) {
+                    second_choice = app_info;
+                } else if (app_info.get_executable () == app_id) {
+                    second_choice = app_info;
                 }
             }
         }
-        strfreev (scores);
-    }
 
-    foreach (var app_info in all_app_infos) {
-        if (!(app_info is DesktopAppInfo)) {
-            continue;
+        var app_info = first_choice ?? second_choice;
+        // Checks if the .desktop file actually exists or not
+        if (app_info is DesktopAppInfo) {
+            strfreev (scores);
+            return app_info;
         }
-        DesktopAppInfo info = (DesktopAppInfo) app_info;
-        string desktop_name = "%s.desktop".printf (app_id);
-    
-        if (Path.get_basename (info.filename).contains (desktop_name)) {
-            return info;
-        }
+        strfreev (scores);
     }
 
     return null;
