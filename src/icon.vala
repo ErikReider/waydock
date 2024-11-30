@@ -1,5 +1,5 @@
 class IconState : Object {
-    public string app_id;
+    public string ? app_id;
     public bool pinned;
     public bool minimized = false;
 
@@ -8,7 +8,7 @@ class IconState : Object {
     public signal void refresh ();
     public signal void toplevel_added (Toplevel * toplevel);
 
-    public IconState (string app_id, bool pinned) {
+    public IconState (string ? app_id, bool pinned) {
         this.app_id = app_id;
         this.pinned = pinned;
         this.toplevels = new List<Toplevel *> ();
@@ -43,6 +43,7 @@ class IconState : Object {
 class Icon : Gtk.Box {
     public unowned IconState ? state { get; private set; default = null; }
     public DesktopAppInfo ? app_info;
+    private KeyFile ? keyfile;
 
     private string app_name;
 
@@ -69,7 +70,18 @@ class Icon : Gtk.Box {
         this.state = id;
         this.app_name = id.app_id;
 
+        // TODO: Check if other icon has same app_info
+        // (ex: gtk4-demo and gtk4-demo fishbowl demo share the same desktop file)
         app_info = get_app_info (id.app_id);
+        if (app_info != null) {
+            keyfile = new KeyFile ();
+            try {
+                keyfile.load_from_file (app_info.get_filename (), KeyFileFlags.NONE);
+            } catch (Error e) {
+                warning ("Could not load KeyFile for: %s", id.app_id);
+                keyfile = null;
+            }
+        }
 
         gesture_click = new Gtk.GestureClick ();
         gesture_click.set_button (0);
@@ -100,13 +112,13 @@ class Icon : Gtk.Box {
             return;
         }
         switch (button) {
-            case 1:
+            case Gdk.BUTTON_PRIMARY :
                 left_click ();
                 break;
-            case 2:
+            case Gdk.BUTTON_MIDDLE :
                 middle_click ();
                 break;
-            case 3:
+            case Gdk.BUTTON_SECONDARY :
                 right_click ();
                 break;
             default:
@@ -114,9 +126,7 @@ class Icon : Gtk.Box {
         }
     }
 
-    private void show_popover () {
-        DockPopover popover = new DockPopover (this);
-
+    private void show_popover (Gtk.Popover popover) {
         unowned Window window = (Window) get_root ();
         popover.set_parent (window);
 
@@ -134,60 +144,99 @@ class Icon : Gtk.Box {
         popover.popup ();
     }
 
-    private void detach_child () {
-        Posix.setsid ();
-
-        Posix.FILE ? file = Posix.FILE.open ("/dev/null", "w+b");
-        int fd = file.fileno ();
-        (unowned Posix.FILE)[] streams = { Posix.stdin, Posix.stdout, Posix.stderr };
-        foreach (var stream in streams) {
-            int stream_fd = stream.fileno ();
-            stream.close ();
-            Posix.dup2 (fd, stream_fd);
-        }
-    }
-
-    private void launch_application () {
-        if (app_info == null) {
-            return;
-        }
-        try {
-            string[] spawn_env = Environ.get ();
-            string[] argvp = {};
-            Shell.parse_argv (app_info.get_commandline (), out argvp);
-            Pid pid;
-
-            Process.spawn_async (
-                null,
-                argvp,
-                spawn_env,
-                SpawnFlags.SEARCH_PATH_FROM_ENVP | SpawnFlags.SEARCH_PATH,
-                detach_child,
-                out pid);
-        } catch (Error e) {
-            error ("Launch error: %s", e.message);
-        }
-    }
-
     private void left_click () {
         // Check if only there's only 1 item
         uint length = state.toplevels.length ();
         if (length == 0) {
-            launch_application ();
+            launch_application (state.app_id, app_info, keyfile, null);
         } else if (length == 1) {
             WlrForeignHelper.activate_toplevel (state.toplevels.nth_data (0));
         } else {
             // Show window picker popover
-            show_popover ();
+            DockPopover popover = new DockPopover (this);
+            show_popover (popover);
         }
     }
 
     private void middle_click () {
-        launch_application ();
+        launch_application (state.app_id, app_info, keyfile, null);
     }
 
     private void right_click () {
-        // TODO: Right click
+        Menu menu = new Menu ();
+        bool has_actions = false;
+
+        // App Actions
+        Menu app_section = new Menu ();
+        SimpleActionGroup app_actions = new SimpleActionGroup ();
+        foreach (var action in app_info.list_actions ()) {
+            has_actions = true;
+
+            MenuItem item = new MenuItem (
+                app_info.get_action_name (action), "menu_toplevel.%s".printf (action));
+            app_section.append_item (item);
+
+            SimpleAction simple_action = new SimpleAction (action, null);
+            simple_action.activate.connect (() => {
+                launch_application (state.app_id, app_info, keyfile, action);
+            });
+            app_actions.add_action (simple_action);
+        }
+        menu.append_section (null, app_section);
+
+        // Constant Actions
+        Menu main_section = new Menu ();
+        SimpleActionGroup actions = new SimpleActionGroup ();
+        if (!has_actions) {
+            main_section.append ("New Instance", "menu.new_instance");
+            SimpleAction simple_action = new SimpleAction ("new_instance", null);
+            simple_action.activate.connect (() => {
+                launch_application (state.app_id, app_info, keyfile, null);
+            });
+            actions.add_action (simple_action);
+        }
+        if (state.pinned) {
+            main_section.append ("Unpin from Dock", "menu.unpin");
+            SimpleAction simple_action = new SimpleAction ("unpin", null);
+            simple_action.activate.connect (() => {
+                // TODO: Unpin
+            });
+            actions.add_action (simple_action);
+        } else if (app_info != null) {
+            main_section.append ("Pin to Dock", "menu.pin");
+            SimpleAction simple_action = new SimpleAction ("pin", null);
+            simple_action.activate.connect (() => {
+                // TODO: Pin
+            });
+            actions.add_action (simple_action);
+        }
+        if (state.toplevels.nth (0) != null) {
+            string text = state.toplevels.nth (1) != null ? "Close All" : "Close";
+            main_section.append (text, "menu.close");
+            SimpleAction simple_action = new SimpleAction ("close", null);
+            simple_action.activate.connect (() => {
+                foreach (var toplevel in state.toplevels) {
+                    if (toplevel != null && toplevel->handle != null) {
+                        toplevel->handle.close ();
+                    }
+                }
+            });
+            actions.add_action (simple_action);
+        }
+        menu.append_section (null, main_section);
+
+        // Create the GTK Popover
+        Gtk.PopoverMenu popover = new Gtk.PopoverMenu.from_model (menu);
+        Gtk.ScrolledWindow scroll = (Gtk.ScrolledWindow) popover.child;
+        scroll.set_min_content_height (-1);
+        scroll.set_max_content_height (500);
+        scroll.set_propagate_natural_height (true);
+        popover.child.width_request = 200;
+
+        popover.insert_action_group ("menu_toplevel", app_actions);
+        popover.insert_action_group ("menu", actions);
+
+        show_popover (popover);
     }
 
     private void refresh_name () {

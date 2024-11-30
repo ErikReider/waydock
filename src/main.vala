@@ -71,34 +71,6 @@ public static int main (string[] args) {
     return app.run ();
 }
 
-public static unowned Wl.Display get_wl_display () {
-    unowned var display = Gdk.Display.get_default ();
-    if (display is Gdk.Wayland.Display) {
-        return ((Gdk.Wayland.Display) display).get_wl_display ();
-    }
-    GLib.error ("Only supports Wayland!");
-}
-
-public static void set_image_icon_from_app_info (DesktopAppInfo ? app_info,
-                                                 string app_id,
-                                                 Gtk.Image image) {
-    // Fallback
-    string icon_string = app_id;
-    unowned var display = Gdk.Display.get_default ();
-    if (!Gtk.IconTheme.get_for_display (display).has_icon (icon_string)) {
-        icon_string = "application-x-executable";
-    }
-    image.set_from_icon_name (icon_string);
-
-    // Try setting from the desktop app info
-    if (app_info != null) {
-        unowned GLib.Icon ? icon = app_info.get_icon ();
-        if (icon != null) {
-            image.set_from_gicon (icon);
-        }
-    }
-}
-
 public static void get_pinned () {
     if (!self_settings.settings_schema.has_key ("pinned")) {
         return;
@@ -117,67 +89,4 @@ public static void get_pinned () {
     foreach (string app_id in array) {
         pinned.append (app_id);
     }
-}
-
-public static DesktopAppInfo ? get_app_info (string app_id) {
-    string app_id_down = app_id.down ();
-
-    // Try to get the desktop file directly
-    string[] entries = {};
-    if (app_id != null) {
-        entries += app_id;
-        entries += app_id_down;
-    }
-    foreach (string entry in entries) {
-        var app_info = new DesktopAppInfo ("%s.desktop".printf (entry));
-        // Checks if the .desktop file actually exists or not
-        if (app_info is DesktopAppInfo) {
-            return app_info;
-        }
-    }
-
-    // Try searching for desktop file instead
-    string * *[] result = DesktopAppInfo.search (app_id);
-    foreach (var scores in result) {
-        DesktopAppInfo ? first_choice = null;
-        DesktopAppInfo ? second_choice = null;
-        for (int i = 0; i < strv_length ((string *[]) scores); i++) {
-            if (first_choice != null && second_choice != null) {
-                break;
-            }
-
-            string * entry = scores[i];
-
-            string[] split = entry->down ().split (".");
-            if (first_choice == null && app_id_down in split) {
-                first_choice = new DesktopAppInfo (entry);
-                continue;
-            }
-            if (second_choice == null) {
-                if (entry->down ().contains (app_id_down)) {
-                    second_choice = new DesktopAppInfo (entry);
-                    continue;
-                }
-                // Backup, check executable name
-                var app_info = new DesktopAppInfo (entry);
-                if (app_info.get_startup_wm_class () == app_id) {
-                    second_choice = app_info;
-                } else if (app_info.get_name ().down () == app_id_down) {
-                    second_choice = app_info;
-                } else if (app_info.get_executable () == app_id) {
-                    second_choice = app_info;
-                }
-            }
-        }
-
-        var app_info = first_choice ?? second_choice;
-        // Checks if the .desktop file actually exists or not
-        if (app_info is DesktopAppInfo) {
-            strfreev (scores);
-            return app_info;
-        }
-        strfreev (scores);
-    }
-
-    return null;
 }
