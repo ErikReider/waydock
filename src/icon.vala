@@ -247,13 +247,20 @@ class Icon : Gtk.Box {
             if (link != null && link.data != null && link.data->title != null) {
                 app_name = link.data->title;
             } else {
-                app_name = state.app_id;
+                app_name = state.app_id ?? "Unknown";
             }
         }
     }
 
     private void set_tooltip () {
-        if (state.toplevels.length () <= 1) {
+        if (state.minimized) {
+            string app_name = state.app_id ?? "Unknown";
+            unowned var link = state.toplevels.first ();
+            if (link != null && link.data != null && link.data->title != null) {
+                app_name = link.data->title;
+            }
+            set_tooltip_text (app_name);
+        } else if (state.toplevels.length () <= 1) {
             set_tooltip_text (app_name);
         } else {
             set_tooltip_text ("%s - %u".printf (app_name, state.toplevels.length ()));
