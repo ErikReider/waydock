@@ -169,21 +169,22 @@ static DesktopAppInfo ? get_app_info (string ? app_id) {
             }
 
             string * entry = scores[i];
+            DesktopAppInfo app_info = new DesktopAppInfo (entry);
 
-            string[] split = entry->down ().split (".");
-            if (first_choice == null && app_id_down in split) {
-                first_choice = new DesktopAppInfo (entry);
+            if (first_choice == null && app_info.get_startup_wm_class () == app_id) {
+                first_choice = app_info;
                 continue;
             }
             if (second_choice == null) {
-                if (entry->down ().contains (app_id_down)) {
-                    second_choice = new DesktopAppInfo (entry);
+                string[] split = entry->down ().split (".");
+                if (app_id_down in split) {
+                    second_choice = app_info;
                     continue;
                 }
-                // Backup, check executable name
-                var app_info = new DesktopAppInfo (entry);
-                if (app_info.get_startup_wm_class () == app_id) {
-                    second_choice = app_info;
+
+                // Backup
+                if (entry->down ().contains (app_id_down)) {
+                    second_choice = new DesktopAppInfo (entry);
                 } else if (app_info.get_name ().down () == app_id_down) {
                     second_choice = app_info;
                 } else if (app_info.get_executable () == app_id) {
