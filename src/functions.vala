@@ -126,7 +126,7 @@ static void launch_application (string ? app_id,
         string[] spawn_env = Environ.get ();
 
         Process.spawn_async (
-            null,
+            Environment.get_home_dir (),
             argvp,
             spawn_env,
             SpawnFlags.SEARCH_PATH_FROM_ENVP | SpawnFlags.SEARCH_PATH,
