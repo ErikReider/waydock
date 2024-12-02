@@ -34,7 +34,7 @@ public class Window : Gtk.ApplicationWindow {
 
         Gtk.Sorter sorter = new Gtk.CustomSorter (sorter_function);
         var sorted_list = new Gtk.SortListModel (list_store, sorter);
-        Gtk.Sorter section_sorter = new Gtk.CustomSorter (sorter_function);
+        Gtk.Sorter section_sorter = new Gtk.CustomSorter (section_function);
         sorted_list.set_section_sorter (section_sorter);
 
         var factory = new Gtk.SignalListItemFactory ();
@@ -76,11 +76,14 @@ public class Window : Gtk.ApplicationWindow {
         list.set_header_factory (header_factory);
         set_child (list);
 
-        // Insert pinned icons
-        foreach (string app_id in pinned) {
+        // Add all pinned
+        foreach (string app_id in pinnedList.pinned) {
             IconState state = new IconState (app_id, true);
             list_store.append (state);
         }
+
+        pinnedList.pinned_added.connect (pinned_added);
+        pinnedList.pinned_removed.connect (pinned_removed);
 
         foreign_helper.toplevel_changed.connect (toplevel_changed);
         foreign_helper.toplevel_focused.connect (toplevel_focused);
@@ -90,6 +93,35 @@ public class Window : Gtk.ApplicationWindow {
 
         height_request = dock_min_size;
         width_request = dock_min_size;
+    }
+
+    private void pinned_added (string app_id) {
+        // Remove all previous pinned
+        for (uint i = 0; i < list_store.get_n_items (); i++) {
+            IconState ? state = (IconState ?) list_store.get_item (i);
+            if (state != null && state.app_id == app_id) {
+                state.pinned = true;
+                list_store.items_changed (i, 1, 1);
+                break;
+            }
+        }
+    }
+
+    private void pinned_removed (string app_id) {
+        // Remove all previous pinned
+        for (uint i = 0; i < list_store.get_n_items (); i++) {
+            IconState ? state = (IconState ?) list_store.get_item (i);
+            if (state != null && state.app_id == app_id) {
+                state.pinned = false;
+                // No running toplevels
+                if (state.get_first_toplevel () == null) {
+                    list_store.remove (i);
+                } else {
+                    list_store.items_changed (i, 1, 1);
+                }
+                break;
+            }
+        }
     }
 
     private void toplevel_changed (Toplevel * toplevel) {
@@ -218,6 +250,18 @@ public class Window : Gtk.ApplicationWindow {
     }
 
     private int sorter_function (void * a, void * b) {
+        unowned IconState id_a = (IconState) a;
+        unowned IconState id_b = (IconState) b;
+
+        if (id_a.pinned && id_b.pinned) {
+            int a_pos = pinnedList.pinned.index (id_a.app_id);
+            int b_pos = pinnedList.pinned.index (id_b.app_id);
+            return a_pos < b_pos ? -1 : 1;
+        }
+        return section_function (a, b);
+    }
+
+    private int section_function (void * a, void * b) {
         unowned IconState id_a = (IconState) a;
         unowned IconState id_b = (IconState) b;
 

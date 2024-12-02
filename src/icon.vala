@@ -199,14 +199,14 @@ class Icon : Gtk.Box {
             main_section.append ("Unpin from Dock", "menu.unpin");
             SimpleAction simple_action = new SimpleAction ("unpin", null);
             simple_action.activate.connect (() => {
-                // TODO: Unpin
+                pinnedList.remove_pinned (state.app_id);
             });
             actions.add_action (simple_action);
         } else if (app_info != null) {
             main_section.append ("Pin to Dock", "menu.pin");
             SimpleAction simple_action = new SimpleAction ("pin", null);
             simple_action.activate.connect (() => {
-                // TODO: Pin
+                pinnedList.add_pinned (state.app_id);
             });
             actions.add_action (simple_action);
         }
