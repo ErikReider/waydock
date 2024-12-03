@@ -7,12 +7,9 @@ class PinnedList {
 
     public signal void pinned_removed (string app_id);
     public signal void pinned_added (string app_id);
+    public signal void pinned_moved (string app_id);
 
     public PinnedList () {
-        get_pinned ();
-    }
-
-    public void get_pinned () {
         pinned = new List<string>();
 
         if (!self_settings.settings_schema.has_key ("pinned")) {
@@ -33,7 +30,7 @@ class PinnedList {
         }
     }
 
-    public void set_pinned () {
+    private void set_pinned () {
         if (!self_settings.settings_schema.has_key ("pinned")) {
             warning ("Could not set pinned");
             return;
@@ -61,11 +58,57 @@ class PinnedList {
     }
 
     public void add_pinned (string app_id) {
-        if (pinned.find (app_id) == null) {
+        unowned List<string> node = pinned.find_custom (app_id, strcmp);
+        if (node == null) {
             pinned.append (app_id);
             set_pinned ();
             pinned_added (app_id);
         }
+    }
+
+    public bool dnd_drop (IconState target_state,
+                          IconState drop_state,
+                          bool is_right) {
+        unowned List<string> node = pinned.find_custom (target_state.app_id, strcmp);
+        if (node == null) {
+            return false;
+        }
+
+        // Only get the next node on right due to always calling `insert_before`.
+        // Not needed for the left direction
+        bool insert_last = false;
+        if (is_right) {
+            if (node == pinned.last ()) {
+                insert_last = true;
+            } else {
+                node = node.next;
+            }
+        }
+
+        // Don't replace self
+        if (node.data == drop_state.app_id) {
+            return false;
+        }
+
+        // Remove if already pinned
+        unowned List<string> drop_node = pinned.find_custom (drop_state.app_id, strcmp);
+        if (drop_node != null) {
+            pinned.remove_link (drop_node);
+            pinned_removed (drop_state.app_id);
+        }
+
+        // Insert at the new position
+        if (insert_last) {
+            pinned.append (drop_state.app_id);
+        } else {
+            pinned.insert_before (node, drop_state.app_id);
+        }
+
+        // Refresh the gschema and call the signal
+        set_pinned ();
+        pinned_added (drop_state.app_id);
+
+        return true;
     }
 }
 

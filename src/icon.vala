@@ -41,6 +41,9 @@ class IconState : Object {
 }
 
 class Icon : Gtk.Box {
+    const string DND_LEFT_CLASS_NAME = "dnd-hover-left";
+    const string DND_RIGHT_CLASS_NAME = "dnd-hover-right";
+
     public unowned IconState ? state { get; private set; default = null; }
     public DesktopAppInfo ? app_info;
     private KeyFile ? keyfile;
@@ -48,6 +51,8 @@ class Icon : Gtk.Box {
     private string app_name;
 
     Gtk.GestureClick gesture_click;
+    Gtk.DragSource drag_source;
+    Gtk.DropTarget drop_target;
 
     private Gtk.Image image;
     private Gtk.Box num_open_box;
@@ -87,6 +92,70 @@ class Icon : Gtk.Box {
         gesture_click.set_button (0);
         gesture_click.released.connect (click_listener);
         add_controller (gesture_click);
+
+        // Drag Source
+        drag_source = new Gtk.DragSource ();
+        drag_source.set_actions (Gdk.DragAction.MOVE);
+        drag_source.prepare.connect ((x, y) => {
+            drag_source.set_icon (new Gtk.WidgetPaintable (image), (int) x, (int) y);
+
+            Value drop_value = Value(typeof (IconState));
+            drop_value.set_object (state);
+            return new Gdk.ContentProvider.for_value (drop_value);
+        });
+        // Hide the docked icon until dnd end/cancel
+        drag_source.drag_begin.connect(() => {
+            this.set_opacity (0.0);
+        });
+        drag_source.drag_end.connect(() => {
+            this.set_opacity (1.0);
+        });
+        drag_source.drag_cancel.connect(() => {
+            this.set_opacity (1.0);
+            return true;
+        });
+        add_controller (drag_source);
+
+        // Drag Target
+        drop_target = new Gtk.DropTarget (typeof(IconState), Gdk.DragAction.MOVE);
+        drop_target.set_preload (true);
+        add_controller (drop_target);
+        drop_target.enter.connect (() => {
+            reset_dnd_classes ();
+            return Gdk.DragAction.MOVE;
+        });
+        drop_target.leave.connect (reset_dnd_classes);
+        drop_target.motion.connect ((x, y) => {
+            // Skip self
+            Value ? value = drop_target.get_value ();
+            if (value == null || !value.holds (typeof(IconState))
+                || this.state == value.get_object ()) {
+                return 0;
+            }
+
+            reset_dnd_classes ();
+            int half_width = get_width () / 2;
+            bool is_right = x > half_width;
+            if (is_right) {
+                add_css_class (DND_RIGHT_CLASS_NAME);
+            } else {
+                add_css_class (DND_LEFT_CLASS_NAME);
+            }
+            return Gdk.DragAction.MOVE;
+        });
+        drop_target.drop.connect ((value, x, y) => {
+            if (!value.holds (typeof(IconState))) {
+                warning ("Tried DND for invalid type: %s", value.type_name ());
+            }
+            unowned IconState drop_state = (IconState) value.get_object ();
+            if (drop_state == null || drop_state == this.state) {
+                return false;
+            }
+
+            int half_width = get_width () / 2;
+            bool is_right = x > half_width;
+            return pinnedList.dnd_drop (this.state, drop_state, is_right);
+        });
 
         set_image_icon_from_app_info (app_info, id.app_id, image);
 
@@ -296,5 +365,10 @@ class Icon : Gtk.Box {
         assert (state != null && toplevel->app_id == state.app_id);
 
         refresh ();
+    }
+
+    private void reset_dnd_classes () {
+        remove_css_class (DND_LEFT_CLASS_NAME);
+        remove_css_class (DND_RIGHT_CLASS_NAME);
     }
 }
