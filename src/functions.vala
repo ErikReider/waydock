@@ -233,3 +233,20 @@ static void set_image_icon_from_app_info (DesktopAppInfo ? app_info,
         }
     }
 }
+
+/**
+ * Copy of g_list_index but with custom compare function.
+ * Needed due to the regular function comparing the pointers which doesn't
+ * work for strings.
+ */
+static int list_index<G> (List<G> list, G data, CompareFunc<G> func) {
+    int i = 0;
+    while (list != null) {
+        if (func (list.data, data) == 0)
+            return i;
+        i++;
+        list = list.next;
+    }
+
+    return -1;
+}

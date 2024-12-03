@@ -254,8 +254,8 @@ public class Window : Gtk.ApplicationWindow {
         unowned IconState id_b = (IconState) b;
 
         if (id_a.pinned && id_b.pinned) {
-            int a_pos = pinnedList.pinned.index (id_a.app_id);
-            int b_pos = pinnedList.pinned.index (id_b.app_id);
+            int a_pos = list_index (pinnedList.pinned, id_a.app_id, strcmp);
+            int b_pos = list_index (pinnedList.pinned, id_b.app_id, strcmp);
             return a_pos < b_pos ? -1 : 1;
         }
         return section_function (a, b);
