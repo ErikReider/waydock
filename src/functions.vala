@@ -90,6 +90,18 @@ static void detach_child () {
     }
 }
 
+// Remove the unneeded Exec field codes:
+// https://specifications.freedesktop.org/desktop-entry-spec/latest/exec-variables.html
+static string clean_exec (string exec) {
+    try {
+      Regex regex = new Regex ("(%f|%F|%u|%U|%d|%D|%n|%N|%i|%c|%k|%v|%m)");
+      return regex.replace (exec, exec.length, 0, "");
+    } catch (RegexError e) {
+      stderr.printf ("RegexError: %s\n", e.message);
+    }
+    return exec;
+}
+
 static void launch_application (string ? app_id,
                                 DesktopAppInfo ? app_info,
                                 KeyFile ? keyfile,
@@ -116,9 +128,7 @@ static void launch_application (string ? app_id,
             return;
         }
 
-        // Remove the unneeded Exec field codes:
-        // https://specifications.freedesktop.org/desktop-entry-spec/latest/exec-variables.html
-        cmdline = cmdline.replace ("%u", "").replace ("%f", "");
+        cmdline = clean_exec (cmdline);
 
         string[] argvp = {};
         Shell.parse_argv (cmdline, out argvp);
