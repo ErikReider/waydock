@@ -96,10 +96,9 @@ public class Window : Gtk.ApplicationWindow {
     }
 
     private void pinned_added (string app_id) {
-        // Remove all previous pinned
         for (uint i = 0; i < list_store.get_n_items (); i++) {
             IconState ? state = (IconState ?) list_store.get_item (i);
-            if (state != null && state.app_id == app_id) {
+            if (state != null && state.app_id == app_id && !state.minimized) {
                 state.pinned = true;
                 list_store.items_changed (i, 1, 1);
                 break;
@@ -108,10 +107,9 @@ public class Window : Gtk.ApplicationWindow {
     }
 
     private void pinned_removed (string app_id) {
-        // Remove all previous pinned
         for (uint i = 0; i < list_store.get_n_items (); i++) {
             IconState ? state = (IconState ?) list_store.get_item (i);
-            if (state != null && state.app_id == app_id) {
+            if (state != null && state.app_id == app_id && state.pinned) {
                 state.pinned = false;
                 // No running toplevels
                 if (state.get_first_toplevel () == null) {
