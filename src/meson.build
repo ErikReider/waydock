@@ -25,6 +25,7 @@ constants = configure_file(
 app_sources = [
   'main.vala',
   'functions.vala',
+  'pinned_list.vala',
   'wlr_foreign_helper.vala',
   'window.vala',
   'icon.vala',
