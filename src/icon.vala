@@ -7,6 +7,7 @@ class IconState : Object {
 
     public signal void refresh ();
     public signal void toplevel_added (Toplevel * toplevel);
+    public signal bool request_icon_reposition (IconState target_state, bool is_right);
 
     public IconState (string ? app_id, bool pinned) {
         this.app_id = app_id;
@@ -114,12 +115,14 @@ class Icon : Gtk.Box {
             this.set_opacity (1.0);
             return true;
         });
-        add_controller (drag_source);
+        if (!state.minimized) {
+            // Don't support DND for minimized icons
+            add_controller (drag_source);
+        }
 
         // Drag Target
         drop_target = new Gtk.DropTarget (typeof(IconState), Gdk.DragAction.MOVE);
         drop_target.set_preload (true);
-        add_controller (drop_target);
         drop_target.enter.connect (() => {
             reset_dnd_classes ();
             return Gdk.DragAction.MOVE;
@@ -154,8 +157,20 @@ class Icon : Gtk.Box {
 
             int half_width = get_width () / 2;
             bool is_right = x > half_width;
-            return pinnedList.dnd_drop (this.state, drop_state, is_right);
+            bool result = false;
+            if (drop_state.pinned) {
+                result |= pinnedList.dnd_drop (this.state, drop_state, is_right);
+            }
+            if (!state.pinned) {
+                // Reposition icon (includes pinned -> unpinned dnd)
+                result |= drop_state.request_icon_reposition (this.state, is_right);
+            }
+            return result;
         });
+        if (!state.minimized) {
+            // Don't support DND for minimized icons
+            add_controller (drop_target);
+        }
 
         set_image_icon_from_app_info (app_info, id.app_id, image);
 

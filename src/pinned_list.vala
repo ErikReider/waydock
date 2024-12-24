@@ -67,6 +67,8 @@ class PinnedList {
                           bool is_right) {
         unowned List<string> node = pinned.find_custom (target_state.app_id, strcmp);
         if (node == null) {
+            // Try to unpin the dropped item if it's pinned
+            remove_pinned (drop_state.app_id);
             return false;
         }
 

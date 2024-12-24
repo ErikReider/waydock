@@ -79,6 +79,7 @@ public class Window : Gtk.ApplicationWindow {
         // Add all pinned
         foreach (string app_id in pinnedList.pinned) {
             IconState state = new IconState (app_id, true);
+            state.request_icon_reposition.connect (request_icon_reposition_callback);
             list_store.append (state);
         }
 
@@ -120,6 +121,39 @@ public class Window : Gtk.ApplicationWindow {
                 break;
             }
         }
+    }
+
+    private bool request_icon_reposition_callback (IconState drag_state,
+                                                   IconState target_state,
+                                                   bool is_right) {
+        if (drag_state.pinned || drag_state.minimized
+            || target_state.pinned || target_state.minimized) {
+            debug ("Skipping pinned/minimized reordering");
+            return false;
+        }
+
+        // Firstly, remove drag from list so that the target_position doesn't
+        // get messed up
+        uint drag_position;
+        if (!list_store.find (drag_state, out drag_position)) {
+            debug ("Could not find drag_state in List Store");
+            return false;
+        }
+        list_store.remove (drag_position);
+
+        // Find the target position and adjust the index depending on if
+        // dropped behind or in front of the target icon
+        uint insert_index;
+        if (!list_store.find (target_state, out insert_index)) {
+            debug ("Could not find target_state in List Store");
+            return false;
+        }
+        if (is_right) {
+            insert_index = (insert_index + 1).clamp (0, list_store.n_items);
+        }
+
+        list_store.insert (insert_index, drag_state);
+        return true;
     }
 
     private void toplevel_changed (Toplevel * toplevel) {
@@ -197,6 +231,7 @@ public class Window : Gtk.ApplicationWindow {
         IconState state = new IconState (toplevel->app_id, false);
         toplevel->data = state;
         state.add_toplevel (toplevel);
+        state.request_icon_reposition.connect (request_icon_reposition_callback);
         list_store.append (state);
     }
 
