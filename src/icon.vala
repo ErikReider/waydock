@@ -103,18 +103,18 @@ class Icon : Gtk.Box {
         drag_source.prepare.connect ((x, y) => {
             drag_source.set_icon (new Gtk.WidgetPaintable (image), (int) x, (int) y);
 
-            Value drop_value = Value(typeof (IconState));
+            Value drop_value = Value (typeof (IconState));
             drop_value.set_object (state);
             return new Gdk.ContentProvider.for_value (drop_value);
         });
         // Hide the docked icon until dnd end/cancel
-        drag_source.drag_begin.connect(() => {
+        drag_source.drag_begin.connect (() => {
             this.set_opacity (0.0);
         });
-        drag_source.drag_end.connect(() => {
+        drag_source.drag_end.connect (() => {
             this.set_opacity (1.0);
         });
-        drag_source.drag_cancel.connect(() => {
+        drag_source.drag_cancel.connect (() => {
             this.set_opacity (1.0);
             return true;
         });
@@ -124,7 +124,7 @@ class Icon : Gtk.Box {
         }
 
         // Drag Target
-        drop_target = new Gtk.DropTarget (typeof(IconState), Gdk.DragAction.MOVE);
+        drop_target = new Gtk.DropTarget (typeof (IconState), Gdk.DragAction.MOVE);
         drop_target.set_preload (true);
         drop_target.enter.connect (() => {
             reset_dnd_classes ();
@@ -134,13 +134,14 @@ class Icon : Gtk.Box {
         drop_target.motion.connect ((x, y) => {
             // Skip self
             Value ? value = drop_target.get_value ();
-            if (value == null || !value.holds (typeof(IconState))
+            if (value == null || !value.holds (typeof (IconState))
                 || this.state == value.get_object ()) {
                 return 0;
             }
             IconState drag_state = (IconState) value.get_object ();
 
             reset_dnd_classes ();
+
             direction adjacent = window.icon_is_adjacent (this.state, drag_state);
             int half_width = get_width () / 2;
             direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
@@ -153,7 +154,7 @@ class Icon : Gtk.Box {
             return Gdk.DragAction.MOVE;
         });
         drop_target.drop.connect ((value, x, y) => {
-            if (!value.holds (typeof(IconState))) {
+            if (!value.holds (typeof (IconState))) {
                 warning ("Tried DND for invalid type: %s", value.type_name ());
             }
             unowned IconState drop_state = (IconState) value.get_object ();
@@ -212,7 +213,7 @@ class Icon : Gtk.Box {
             case Gdk.BUTTON_MIDDLE :
                 middle_click ();
                 break;
-            case Gdk.BUTTON_SECONDARY :
+            case Gdk.BUTTON_SECONDARY:
                 right_click ();
                 break;
             default:
