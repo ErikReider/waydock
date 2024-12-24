@@ -64,7 +64,11 @@ class PinnedList {
 
     public bool dnd_drop (IconState target_state,
                           IconState drop_state,
-                          bool is_right) {
+                          direction dir) {
+        if (dir == direction.NONE) {
+            return false;
+        }
+
         unowned List<string> node = pinned.find_custom (target_state.app_id, strcmp);
         if (node == null) {
             // Try to unpin the dropped item if it's pinned
@@ -75,7 +79,7 @@ class PinnedList {
         // Only get the next node on right due to always calling `insert_before`.
         // Not needed for the left direction
         bool insert_last = false;
-        if (is_right) {
+        if (dir == direction.RIGHT) {
             if (node == pinned.last ()) {
                 insert_last = true;
             } else {

@@ -1,3 +1,9 @@
+public enum direction {
+    LEFT = 0,
+    RIGHT = 1,
+    NONE = 2;
+}
+
 static Settings self_settings;
 
 static WlrForeignHelper foreign_helper;

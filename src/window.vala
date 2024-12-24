@@ -40,7 +40,7 @@ public class Window : Gtk.ApplicationWindow {
         var factory = new Gtk.SignalListItemFactory ();
         factory.setup.connect ((factory, object) => {
             Gtk.ListItem item = (Gtk.ListItem) object;
-            item.set_child (new Icon ());
+            item.set_child (new Icon (this));
         });
         factory.bind.connect ((factory, object) => {
             Gtk.ListItem item = (Gtk.ListItem) object;
@@ -130,7 +130,10 @@ public class Window : Gtk.ApplicationWindow {
 
     private bool request_icon_reposition_callback (IconState drag_state,
                                                    IconState target_state,
-                                                   bool is_right) {
+                                                   direction dir) {
+        if (dir == direction.NONE) {
+            return false;
+        }
         if (drag_state.pinned || drag_state.minimized
             || target_state.pinned || target_state.minimized) {
             debug ("Skipping pinned/minimized reordering");
@@ -153,7 +156,7 @@ public class Window : Gtk.ApplicationWindow {
             debug ("Could not find target_state in List Store");
             return false;
         }
-        if (is_right) {
+        if (dir == direction.RIGHT) {
             insert_index = (insert_index + 1).clamp (0, list_store.n_items);
         }
 
@@ -316,5 +319,32 @@ public class Window : Gtk.ApplicationWindow {
             return 1;
         }
         return 0;
+    }
+
+    public direction icon_is_adjacent (IconState reference, IconState sibling) {
+        if (reference == null || sibling == null || reference == sibling) {
+            return direction.NONE;
+        }
+
+        uint ref_pos;
+        if (!list_store.find (reference, out ref_pos)) {
+            debug ("Could not find reference icon state in List Store");
+            return direction.NONE;
+        }
+
+        if (ref_pos - 1 >= 0) {
+            IconState ? state = (IconState ?) list_store.get_item (ref_pos - 1);
+            if (state != null && state == sibling) {
+                return direction.LEFT;
+            }
+        }
+        if (ref_pos + 1 < list_store.n_items) {
+            IconState ? state = (IconState ?) list_store.get_item (ref_pos + 1);
+            if (state != null && state == sibling) {
+                return direction.RIGHT;
+            }
+        }
+
+        return direction.NONE;
     }
 }

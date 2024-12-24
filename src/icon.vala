@@ -1,4 +1,4 @@
-class IconState : Object {
+public class IconState : Object {
     public string ? app_id;
     public bool pinned;
     public bool minimized = false;
@@ -7,7 +7,7 @@ class IconState : Object {
 
     public signal void refresh ();
     public signal void toplevel_added (Toplevel * toplevel);
-    public signal bool request_icon_reposition (IconState target_state, bool is_right);
+    public signal bool request_icon_reposition (IconState target_state, direction dir);
 
     public IconState (string ? app_id, bool pinned) {
         this.app_id = app_id;
@@ -58,8 +58,11 @@ class Icon : Gtk.Box {
     private Gtk.Image image;
     private Gtk.Box num_open_box;
 
-    public Icon () {
+    private unowned Window window;
+
+    public Icon (Window window) {
         Object (orientation : Gtk.Orientation.VERTICAL, spacing : 4);
+        this.window = window;
 
         add_css_class ("dock-icon");
 
@@ -135,13 +138,16 @@ class Icon : Gtk.Box {
                 || this.state == value.get_object ()) {
                 return 0;
             }
+            IconState drag_state = (IconState) value.get_object ();
 
             reset_dnd_classes ();
+            direction adjacent = window.icon_is_adjacent (this.state, drag_state);
             int half_width = get_width () / 2;
-            bool is_right = x > half_width;
-            if (is_right) {
+            direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
+            bool not_adjacent = adjacent == direction.NONE || dir != adjacent;
+            if (dir == direction.RIGHT && not_adjacent) {
                 add_css_class (DND_RIGHT_CLASS_NAME);
-            } else {
+            } else if (dir == direction.LEFT && not_adjacent) {
                 add_css_class (DND_LEFT_CLASS_NAME);
             }
             return Gdk.DragAction.MOVE;
@@ -156,14 +162,14 @@ class Icon : Gtk.Box {
             }
 
             int half_width = get_width () / 2;
-            bool is_right = x > half_width;
+            direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
             bool result = false;
             if (drop_state.pinned || this.state.pinned) {
-                result |= pinnedList.dnd_drop (this.state, drop_state, is_right);
+                result |= pinnedList.dnd_drop (this.state, drop_state, dir);
             }
             if (!state.pinned) {
                 // Reposition icon (includes pinned -> unpinned dnd)
-                result |= drop_state.request_icon_reposition (this.state, is_right);
+                result |= drop_state.request_icon_reposition (this.state, dir);
             }
             return result;
         });
