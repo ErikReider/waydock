@@ -158,7 +158,7 @@ class Icon : Gtk.Box {
             int half_width = get_width () / 2;
             bool is_right = x > half_width;
             bool result = false;
-            if (drop_state.pinned) {
+            if (drop_state.pinned || this.state.pinned) {
                 result |= pinnedList.dnd_drop (this.state, drop_state, is_right);
             }
             if (!state.pinned) {
