@@ -189,7 +189,11 @@ class Icon : Gtk.Box {
         state.toplevel_added.disconnect (toplevel_added);
     }
 
-    private void click_listener () {
+    private void click_listener (int n_press, double x, double y) {
+        if (x < 0 || x > get_width () || y < 0 || y > get_height ()) {
+            return;
+        }
+
         uint button = gesture_click.get_current_button ();
         if (button <= 0) {
             debug ("Button: %u pressed, ignoring...", button);
