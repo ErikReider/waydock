@@ -102,9 +102,14 @@ public class Window : Gtk.ApplicationWindow {
             if (state != null && state.app_id == app_id && !state.minimized) {
                 state.pinned = true;
                 list_store.items_changed (i, 1, 1);
-                break;
+                return;
             }
         }
+
+        // Fallback for if a repositioned pinned toplevel isn't running (not in list)
+        IconState state = new IconState (app_id, true);
+        state.request_icon_reposition.connect (request_icon_reposition_callback);
+        list_store.append (state);
     }
 
     private void pinned_removed (string app_id) {
