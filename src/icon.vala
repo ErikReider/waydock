@@ -67,6 +67,7 @@ class Icon : Gtk.Box {
         add_css_class ("dock-icon");
 
         image = new Gtk.Image ();
+        image.add_css_class ("icon-image");
         append (image);
 
         num_open_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);

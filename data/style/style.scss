@@ -50,8 +50,11 @@ $icon_width: $icon_size + $margin;
     padding-right: $icon_width;
   }
 
-  &:hover > image {
+  &:hover > .icon-image {
     -gtk-icon-filter: brightness(1.2);
+  }
+  &:active > .icon-image {
+    -gtk-icon-filter: brightness(0.8);
   }
 
   & > .num_open_box {
