@@ -12,7 +12,33 @@ static PinnedList pinnedList;
 
 static List<AppInfo> all_app_infos;
 
+static void print_help (string program) {
+    print ("Usage:\n");
+    print ("\t %s <OPTION>\n".printf (program));
+    print ("Help:\n");
+    print ("\t -h, --help \t\t Show help options\n");
+    print ("\t -v, --version \t\t Prints version\n");
+}
+
+static void parse_args (string[] args) {
+    foreach (unowned string arg in args[1:]) {
+        switch (arg) {
+            case "--version":
+                print ("%s\n", Constants.VERSION);
+                Process.exit (0);
+            case "--help":
+                print_help (args[0]);
+                Process.exit (0);
+            default:
+                print_help (args[0]);
+                Process.exit (1);
+        }
+    }
+}
+
 public static int main (string[] args) {
+    parse_args (args);
+
     Gtk.init ();
     Adw.init ();
 
