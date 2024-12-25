@@ -29,8 +29,7 @@ style_css = custom_target(
   build_always_stale: true,
   input: 'style/style.scss',
   output: 'style.css',
-  install: true,
-  install_dir: config_path,
+  install: false,
   command: [sassc, '-t', 'expanded', '@INPUT@', '@OUTPUT@'],
 )
 
