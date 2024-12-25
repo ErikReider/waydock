@@ -2,7 +2,7 @@ public class Window : Gtk.ApplicationWindow {
     private const int margin = 6;
     private const int dock_min_size = margin * 2;
 
-    private ListStore list_store = new ListStore (typeof (IconState));
+    private SortedListStore list_object;
 
     private Gtk.ListView list;
 
@@ -33,9 +33,8 @@ public class Window : Gtk.ApplicationWindow {
         add_css_class ("dock");
 
         Gtk.Sorter sorter = new Gtk.CustomSorter (sorter_function);
-        var sorted_list = new Gtk.SortListModel (list_store, sorter);
         Gtk.Sorter section_sorter = new Gtk.CustomSorter (section_function);
-        sorted_list.set_section_sorter (section_sorter);
+        list_object = new SortedListStore (typeof (IconState), sorter, section_sorter);
 
         var factory = new Gtk.SignalListItemFactory ();
         factory.setup.connect ((factory, object) => {
@@ -70,7 +69,7 @@ public class Window : Gtk.ApplicationWindow {
             item.get_child ().set_visible (true);
         });
 
-        Gtk.NoSelection no_selection = new Gtk.NoSelection (sorted_list);
+        Gtk.NoSelection no_selection = new Gtk.NoSelection (list_object.sorted_list);
         list = new Gtk.ListView (no_selection, factory);
         list.set_orientation (Gtk.Orientation.HORIZONTAL);
         list.set_header_factory (header_factory);
@@ -80,7 +79,7 @@ public class Window : Gtk.ApplicationWindow {
         foreach (string app_id in pinnedList.pinned) {
             IconState state = new IconState (app_id, true);
             state.request_icon_reposition.connect (request_icon_reposition_callback);
-            list_store.append (state);
+            list_object.append (state);
         }
 
         pinnedList.pinned_added.connect (pinned_added);
@@ -97,11 +96,11 @@ public class Window : Gtk.ApplicationWindow {
     }
 
     private void pinned_added (string app_id) {
-        for (uint i = 0; i < list_store.get_n_items (); i++) {
-            IconState ? state = (IconState ?) list_store.get_item (i);
+        for (uint i = 0; i < list_object.get_n_items (); i++) {
+            IconState ? state = (IconState ?) list_object.get_item (i);
             if (state != null && state.app_id == app_id && !state.minimized) {
                 state.pinned = true;
-                list_store.items_changed (i, 1, 1);
+                list_object.list_store.items_changed (i, 1, 1);
                 return;
             }
         }
@@ -109,19 +108,19 @@ public class Window : Gtk.ApplicationWindow {
         // Fallback for if a repositioned pinned toplevel isn't running (not in list)
         IconState state = new IconState (app_id, true);
         state.request_icon_reposition.connect (request_icon_reposition_callback);
-        list_store.append (state);
+        list_object.append (state);
     }
 
     private void pinned_removed (string app_id) {
-        for (uint i = 0; i < list_store.get_n_items (); i++) {
-            IconState ? state = (IconState ?) list_store.get_item (i);
+        for (uint i = 0; i < list_object.get_n_items (); i++) {
+            IconState ? state = (IconState ?) list_object.get_item (i);
             if (state != null && state.app_id == app_id && state.pinned) {
                 state.pinned = false;
                 // No running toplevels
                 if (state.get_first_toplevel () == null) {
-                    list_store.remove (i);
+                    list_object.remove (i);
                 } else {
-                    list_store.items_changed (i, 1, 1);
+                    list_object.list_store.items_changed (i, 1, 1);
                 }
                 break;
             }
@@ -143,24 +142,24 @@ public class Window : Gtk.ApplicationWindow {
         // Firstly, remove drag from list so that the target_position doesn't
         // get messed up
         uint drag_position;
-        if (!list_store.find (drag_state, out drag_position)) {
+        if (!list_object.find (drag_state, out drag_position)) {
             debug ("Could not find drag_state in List Store");
             return false;
         }
-        list_store.remove (drag_position);
+        list_object.remove (drag_position);
 
         // Find the target position and adjust the index depending on if
         // dropped behind or in front of the target icon
         uint insert_index;
-        if (!list_store.find (target_state, out insert_index)) {
+        if (!list_object.find (target_state, out insert_index)) {
             debug ("Could not find target_state in List Store");
             return false;
         }
         if (dir == direction.RIGHT) {
-            insert_index = (insert_index + 1).clamp (0, list_store.n_items);
+            insert_index = (insert_index + 1).clamp (0, list_object.get_n_items ());
         }
 
-        list_store.insert (insert_index, drag_state);
+        list_object.insert (insert_index, drag_state);
         return true;
     }
 
@@ -177,8 +176,8 @@ public class Window : Gtk.ApplicationWindow {
         if (toplevel->data != null) {
             state = (IconState) toplevel->data;
         } else {
-            for (uint i = 0; i < list_store.n_items; i++) {
-                IconState iter_state = (IconState) list_store.get_item (i);
+            for (uint i = 0; i < list_object.get_n_items (); i++) {
+                IconState iter_state = (IconState) list_object.get_item (i);
                 if (!iter_state.minimized && iter_state.app_id == toplevel->app_id) {
                     state = iter_state;
                     break;
@@ -199,18 +198,18 @@ public class Window : Gtk.ApplicationWindow {
             IconState state = new IconState (toplevel->app_id, false);
             state.minimized = true;
             state.add_toplevel (toplevel);
-            list_store.append (state);
+            list_object.append (state);
         } else {
-            for (uint i = 0; i < list_store.n_items; i++) {
-                IconState state = (IconState) list_store.get_item (i);
+            for (uint i = 0; i < list_object.get_n_items (); i++) {
+                IconState state = (IconState) list_object.get_item (i);
                 Toplevel * first_toplevel = state.get_first_toplevel ();
                 if (first_toplevel == null) {
                     continue;
                 }
                 if (state.minimized && first_toplevel == toplevel) {
                     uint pos;
-                    if (list_store.find (state, out pos)) {
-                        list_store.remove (pos);
+                    if (list_object.find (state, out pos)) {
+                        list_object.remove (pos);
                     } else {
                         error ("Could not find ID in ListStore");
                     }
@@ -226,8 +225,8 @@ public class Window : Gtk.ApplicationWindow {
         }
 
         // Check if icon with app_id already exists
-        for (uint i = 0; i < list_store.n_items; i++) {
-            IconState state = (IconState) list_store.get_item (i);
+        for (uint i = 0; i < list_object.get_n_items (); i++) {
+            IconState state = (IconState) list_object.get_item (i);
             if (!state.minimized && state.app_id == toplevel->app_id) {
                 toplevel->data = state;
                 state.add_toplevel (toplevel);
@@ -240,21 +239,21 @@ public class Window : Gtk.ApplicationWindow {
         toplevel->data = state;
         state.add_toplevel (toplevel);
         state.request_icon_reposition.connect (request_icon_reposition_callback);
-        list_store.append (state);
+        list_object.append (state);
     }
 
     private void toplevel_removed (owned Toplevel toplevel) {
         // Remove all minimized icons with Toplevel
-        for (uint i = 0; i < list_store.n_items; i++) {
-            IconState state = (IconState) list_store.get_item (i);
+        for (uint i = 0; i < list_object.get_n_items (); i++) {
+            IconState state = (IconState) list_object.get_item (i);
             Toplevel * first_toplevel = state.get_first_toplevel ();
             if (first_toplevel == null) {
                 continue;
             }
             if (state.minimized && first_toplevel == toplevel) {
                 uint pos;
-                if (list_store.find (state, out pos)) {
-                    list_store.remove (pos);
+                if (list_object.find (state, out pos)) {
+                    list_object.remove (pos);
                 } else {
                     error ("Could not find ID in ListStore");
                 }
@@ -264,8 +263,8 @@ public class Window : Gtk.ApplicationWindow {
 
         unowned IconState state = (IconState) toplevel.data;
         if (state == null) {
-            for (uint i = 0; i < list_store.n_items; i++) {
-                IconState iter_state = (IconState) list_store.get_item (i);
+            for (uint i = 0; i < list_object.get_n_items (); i++) {
+                IconState iter_state = (IconState) list_object.get_item (i);
                 if (!iter_state.minimized && iter_state.app_id == toplevel.app_id) {
                     state = iter_state;
                     break;
@@ -281,8 +280,8 @@ public class Window : Gtk.ApplicationWindow {
         if (state.remove_toplevel (toplevel)) {
             if (!state.pinned) {
                 uint pos;
-                if (list_store.find (state, out pos)) {
-                    list_store.remove (pos);
+                if (list_object.find (state, out pos)) {
+                    list_object.remove (pos);
                 } else {
                     error ("Could not find ID in ListStore");
                 }
@@ -327,24 +326,28 @@ public class Window : Gtk.ApplicationWindow {
         }
 
         uint ref_pos;
-        if (!list_store.find (reference, out ref_pos)) {
+        if (!list_object.find_sorted (reference, out ref_pos)) {
             debug ("Could not find reference icon state in List Store");
             return direction.NONE;
         }
 
         if (ref_pos - 1 >= 0) {
-            IconState ? state = (IconState ?) list_store.get_item (ref_pos - 1);
+            IconState ? state = (IconState ?) list_object.get_item_sorted (ref_pos - 1);
             if (state != null && state == sibling) {
                 return direction.LEFT;
             }
         }
-        if (ref_pos + 1 < list_store.n_items) {
-            IconState ? state = (IconState ?) list_store.get_item (ref_pos + 1);
+        if (ref_pos + 1 < list_object.get_n_items ()) {
+            IconState ? state = (IconState ?) list_object.get_item_sorted (ref_pos + 1);
             if (state != null && state == sibling) {
                 return direction.RIGHT;
             }
         }
 
         return direction.NONE;
+    }
+
+    public void debug_print_list_store () {
+        list_object.debug_print_list_store ();
     }
 }

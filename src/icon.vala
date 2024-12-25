@@ -144,11 +144,13 @@ class Icon : Gtk.Box {
 
             direction adjacent = window.icon_is_adjacent (this.state, drag_state);
             int half_width = get_width () / 2;
+
             direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
-            bool not_adjacent = adjacent == direction.NONE || dir != adjacent;
-            if (dir == direction.RIGHT && not_adjacent) {
+            // Ignore setting padding offset when it's the neighbouring icon
+            bool is_adjacent = adjacent != direction.NONE && dir == adjacent;
+            if (dir == direction.RIGHT && !is_adjacent) {
                 add_css_class (DND_RIGHT_CLASS_NAME);
-            } else if (dir == direction.LEFT && not_adjacent) {
+            } else if (dir == direction.LEFT && !is_adjacent) {
                 add_css_class (DND_LEFT_CLASS_NAME);
             }
             return Gdk.DragAction.MOVE;

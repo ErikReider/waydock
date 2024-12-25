@@ -26,6 +26,7 @@ app_sources = [
   'main.vala',
   'functions.vala',
   'pinned_list.vala',
+  'sorted_liststore.vala',
   'wlr_foreign_helper.vala',
   'window.vala',
   'icon.vala',
