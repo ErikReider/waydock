@@ -24,6 +24,7 @@ BuildRequires: pkgconfig(libadwaita-1) >= 1.5.0
 BuildRequires: pkgconfig(gee-0.8)
 BuildRequires: pkgconfig(gtk4-wayland)
 BuildRequires: pkgconfig(wayland-client)
+BuildRequires: sassc
 Requires: glib2
 Requires: gtk4-layer-shell
 
