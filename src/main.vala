@@ -42,8 +42,6 @@ public static int main (string[] args) {
     Gtk.init ();
     Adw.init ();
 
-    self_settings = new Settings ("org.erikreider.swaync");
-
     // All app infos
     all_app_infos = AppInfo.get_all ();
     AppInfoMonitor app_info_monitor = AppInfoMonitor.get ();
@@ -55,7 +53,7 @@ public static int main (string[] args) {
 
 #if USE_GLOBAL_GSCHEMA
     // Use the global compiled gschema in /usr/share/glib-2.0/schemas/*
-    self_settings = new Settings ("org.erikreider.swaysettings");
+    self_settings = new Settings ("org.erikreider.waydock");
 #else
     message ("Using local GSchema");
     // Meant for use in development.
