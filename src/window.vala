@@ -321,7 +321,8 @@ public class Window : Gtk.ApplicationWindow {
     }
 
     public direction icon_is_adjacent (IconState reference, IconState sibling) {
-        if (reference == null || sibling == null || reference == sibling) {
+        if (reference == null || sibling == null || reference == sibling
+            || reference.pinned != sibling.pinned) {
             return direction.NONE;
         }
 
