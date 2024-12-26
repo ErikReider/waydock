@@ -1,12 +1,14 @@
 # vim: syntax=spec
 Name:       waydock-git
-Version:    0.1.0
+Version:    {{{ git_repo_release }}}
 Release:    1%{?dist}
 Summary:    A dock that supports wlroots-based WMs
 License:    GPLv3
 URL:        https://github.com/ErikReider/waydock
 VCS:        {{{ git_repo_vcs }}}
 Source:     {{{ git_repo_pack }}}
+
+Provides: waydock
 
 BuildRequires: meson >= 0.60.0
 BuildRequires: vala
