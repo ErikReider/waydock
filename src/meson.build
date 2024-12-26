@@ -42,7 +42,7 @@ app_deps = [
   dependency('gtk4', version: '>= 4.14'),
   dependency('json-glib-1.0', version: '>= 1.0'),
   dependency('granite-7', version: '>= 7.5.0'),
-  dependency('gtk4-layer-shell-0', version: '>= 1.0.4'),
+  dependency('gtk4-layer-shell-0', version: '>= 1.0.2'),
   dependency('libadwaita-1', version: '>= 1.5.0'),
   cc.find_library('m', required: true),
   vala.find_library('posix'),
