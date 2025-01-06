@@ -247,11 +247,12 @@ static unowned Wl.Display get_wl_display () {
 static void set_image_icon_from_app_info (DesktopAppInfo ? app_info,
                                           string ? app_id,
                                           Gtk.Image image) {
+    unowned var display = Gdk.Display.get_default ();
+    unowned Gtk.IconTheme theme = Gtk.IconTheme.get_for_display (display);
+
     // Fallback
     string ? icon_string = app_id;
-    unowned var display = Gdk.Display.get_default ();
-    if (icon_string == null
-        || !Gtk.IconTheme.get_for_display (display).has_icon (icon_string)) {
+    if (icon_string == null || !theme.has_icon (icon_string)) {
         icon_string = "application-x-executable";
     }
     image.set_from_icon_name (icon_string);
@@ -259,8 +260,14 @@ static void set_image_icon_from_app_info (DesktopAppInfo ? app_info,
     // Try setting from the desktop app info
     if (app_info != null) {
         unowned GLib.Icon ? icon = app_info.get_icon ();
-        if (icon != null) {
-            image.set_from_gicon (icon);
+        if (icon is ThemedIcon) {
+            unowned ThemedIcon t_icon = (ThemedIcon) icon;
+            foreach (string name in t_icon.names) {
+                if (theme.has_icon (name)) {
+                    image.set_from_gicon (t_icon);
+                    return;
+                }
+            }
         }
     }
 }
