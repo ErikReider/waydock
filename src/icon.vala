@@ -76,19 +76,23 @@ class Icon : Gtk.Box {
         append (num_open_box);
     }
 
-    public void init (IconState id) {
-        this.state = id;
-        this.app_name = id.app_id;
+    public void init (IconState state) {
+        this.state = state;
+        this.app_name = state.app_id;
+
+        if (state.minimized) {
+            add_css_class ("minimized");
+        }
 
         // TODO: Check if other icon has same app_info
         // (ex: gtk4-demo and gtk4-demo fishbowl demo share the same desktop file)
-        app_info = get_app_info (id.app_id);
+        app_info = get_app_info (state.app_id);
         if (app_info != null) {
             keyfile = new KeyFile ();
             try {
                 keyfile.load_from_file (app_info.get_filename (), KeyFileFlags.NONE);
             } catch (Error e) {
-                warning ("Could not load KeyFile for: %s", id.app_id);
+                warning ("Could not load KeyFile for: %s", state.app_id);
                 keyfile = null;
             }
         }
@@ -182,7 +186,7 @@ class Icon : Gtk.Box {
             add_controller (drop_target);
         }
 
-        set_image_icon_from_app_info (app_info, id.app_id, image);
+        set_image_icon_from_app_info (app_info, state.app_id, image);
 
         listen_to_signals ();
 
@@ -366,6 +370,10 @@ class Icon : Gtk.Box {
     }
 
     private void set_running_circles () {
+        if (state.minimized) {
+            return;
+        }
+
         // Clear all previous
         unowned Gtk.Widget widget = num_open_box.get_first_child ();
         while ((widget = num_open_box.get_first_child ()) != null) {

@@ -50,6 +50,10 @@ $icon_width: $icon_size + $margin;
     padding-right: $icon_width;
   }
 
+  &.minimized > .icon-image {
+    -gtk-icon-filter: brightness(0.8) saturate(0.7);
+  }
+
   &:hover > .icon-image {
     -gtk-icon-filter: brightness(1.2);
   }
