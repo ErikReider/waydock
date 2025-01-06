@@ -147,21 +147,14 @@ static void launch_application (string ? app_id,
     }
 }
 
-static DesktopAppInfo ? get_app_info (string ? app_id) {
-    if (app_id == null) {
-        return null;
-    }
-
-    string app_id_down = app_id.down ();
-
+private static DesktopAppInfo ? try_app_info_search (string app_id, string test_id) {
     // Try to get the desktop file directly
-    string[] entries = {};
-    if (app_id != null) {
-        entries += app_id;
-        entries += app_id_down;
-    }
+    string[] entries = {
+        app_id,
+        "%s.desktop".printf (app_id),
+    };
     foreach (string entry in entries) {
-        var app_info = new DesktopAppInfo ("%s.desktop".printf (entry));
+        var app_info = new DesktopAppInfo (entry);
         // Checks if the .desktop file actually exists or not
         if (app_info is DesktopAppInfo) {
             return app_info;
@@ -169,7 +162,7 @@ static DesktopAppInfo ? get_app_info (string ? app_id) {
     }
 
     // Try searching for desktop file instead
-    string * *[] result = DesktopAppInfo.search (app_id);
+    string * *[] result = DesktopAppInfo.search (test_id);
     foreach (var scores in result) {
         DesktopAppInfo ? first_choice = null;
         DesktopAppInfo ? second_choice = null;
@@ -181,21 +174,23 @@ static DesktopAppInfo ? get_app_info (string ? app_id) {
             string * entry = scores[i];
             DesktopAppInfo app_info = new DesktopAppInfo (entry);
 
-            if (first_choice == null && app_info.get_startup_wm_class () == app_id) {
+            if (first_choice == null
+                && (app_info.get_startup_wm_class ().down () == app_id.down ()
+                || app_info.get_startup_wm_class ().down () == test_id.down ())) {
                 first_choice = app_info;
                 continue;
             }
             if (second_choice == null) {
-                string[] split = entry->down ().split (".");
-                if (app_id_down in split) {
+                string[] split = entry->split (".");
+                if (app_id in split) {
                     second_choice = app_info;
                     continue;
                 }
 
                 // Backup
-                if (entry->down ().contains (app_id_down)) {
+                if (entry->contains (app_id)) {
                     second_choice = new DesktopAppInfo (entry);
-                } else if (app_info.get_name ().down () == app_id_down) {
+                } else if (app_info.get_name ().down () == app_id.down ()) {
                     second_choice = app_info;
                 } else if (app_info.get_executable () == app_id) {
                     second_choice = app_info;
@@ -210,6 +205,32 @@ static DesktopAppInfo ? get_app_info (string ? app_id) {
             return app_info;
         }
         strfreev (scores);
+    }
+
+    return null;
+}
+
+static DesktopAppInfo ? get_app_info (string ? app_id) {
+    if (app_id == null) {
+        return null;
+    }
+
+    string[] app_ids = {
+        app_id,
+        app_id.down (),
+    };
+    // org.mozilla.firefox -> firefox
+    int start = app_id.last_index_of_char ('.');
+    app_ids += app_id.substring (start + 1);
+    // ca.desrt.dconf-editor -> ca.desrt.dconf
+    start = app_id.index_of_char ('-');
+    app_ids += app_id.substring (0, start);
+
+    foreach (string id in app_ids) {
+        DesktopAppInfo? info = try_app_info_search (app_id, id);
+        if (info is DesktopAppInfo) {
+            return info;
+        }
     }
 
     return null;
