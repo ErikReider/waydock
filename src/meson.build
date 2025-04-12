@@ -30,6 +30,8 @@ app_sources = [
   'wlr_foreign_helper.vala',
   'window.vala',
   'icon.vala',
+  'icon_state.vala',
+  'icon_padding.vala',
   'dock_popover.vala',
   constants,
 ]

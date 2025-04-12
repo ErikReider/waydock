@@ -1,50 +1,4 @@
-public class IconState : Object {
-    public string ? app_id;
-    public bool pinned;
-    public bool minimized = false;
-
-    public List<Toplevel *> toplevels;
-
-    public signal void refresh ();
-    public signal void toplevel_added (Toplevel * toplevel);
-    public signal bool request_icon_reposition (IconState target_state, direction dir);
-
-    public IconState (string ? app_id, bool pinned) {
-        this.app_id = app_id;
-        this.pinned = pinned;
-        this.toplevels = new List<Toplevel *> ();
-    }
-
-    public void move_to_front (Toplevel * toplevel) {
-        toplevels.remove (toplevel);
-        toplevels.insert (toplevel, 0);
-    }
-
-    public void add_toplevel (Toplevel * toplevel) {
-        toplevels.append (toplevel);
-        toplevel_added (toplevel);
-    }
-
-    /// Returns true if there are no toplevels left
-    public bool remove_toplevel (owned Toplevel toplevel) {
-        toplevels.remove (toplevel);
-        refresh ();
-        return toplevels.is_empty ();
-    }
-
-    public Toplevel * get_first_toplevel () {
-        unowned List<Toplevel *> first_link = toplevels.first ();
-        if (first_link == null) {
-            return null;
-        }
-        return first_link.data;
-    }
-}
-
 class Icon : Gtk.Box {
-    const string DND_LEFT_CLASS_NAME = "dnd-hover-left";
-    const string DND_RIGHT_CLASS_NAME = "dnd-hover-right";
-
     public unowned IconState ? state { get; private set; default = null; }
     public DesktopAppInfo ? app_info;
     private KeyFile ? keyfile;
@@ -52,10 +6,8 @@ class Icon : Gtk.Box {
     private string app_name;
 
     Gtk.GestureClick gesture_click;
-    Gtk.DragSource drag_source;
-    Gtk.DropTarget drop_target;
 
-    private Gtk.Image image;
+    public Gtk.Image image { get; private set; }
     private Gtk.Box num_open_box;
 
     private unowned Window window;
@@ -67,6 +19,8 @@ class Icon : Gtk.Box {
         add_css_class ("dock-icon");
 
         image = new Gtk.Image ();
+        // TODO: Make configurable
+        image.set_pixel_size (48);
         image.add_css_class ("icon-image");
         append (image);
 
@@ -101,90 +55,6 @@ class Icon : Gtk.Box {
         gesture_click.set_button (0);
         gesture_click.released.connect (click_listener);
         add_controller (gesture_click);
-
-        // Drag Source
-        drag_source = new Gtk.DragSource ();
-        drag_source.set_actions (Gdk.DragAction.MOVE);
-        drag_source.prepare.connect ((x, y) => {
-            drag_source.set_icon (new Gtk.WidgetPaintable (image), (int) x, (int) y);
-
-            Value drop_value = Value (typeof (IconState));
-            drop_value.set_object (state);
-            return new Gdk.ContentProvider.for_value (drop_value);
-        });
-        // Hide the docked icon until dnd end/cancel
-        drag_source.drag_begin.connect (() => {
-            this.set_opacity (0.0);
-        });
-        drag_source.drag_end.connect (() => {
-            this.set_opacity (1.0);
-        });
-        drag_source.drag_cancel.connect (() => {
-            this.set_opacity (1.0);
-            return true;
-        });
-        if (!state.minimized) {
-            // Don't support DND for minimized icons
-            add_controller (drag_source);
-        }
-
-        // Drag Target
-        drop_target = new Gtk.DropTarget (typeof (IconState), Gdk.DragAction.MOVE);
-        drop_target.set_preload (true);
-        drop_target.enter.connect (() => {
-            reset_dnd_classes ();
-            return Gdk.DragAction.MOVE;
-        });
-        drop_target.leave.connect (reset_dnd_classes);
-        drop_target.motion.connect ((x, y) => {
-            // Skip self
-            Value ? value = drop_target.get_value ();
-            if (value == null || !value.holds (typeof (IconState))
-                || this.state == value.get_object ()) {
-                return 0;
-            }
-            IconState drag_state = (IconState) value.get_object ();
-
-            reset_dnd_classes ();
-
-            direction adjacent = window.icon_is_adjacent (this.state, drag_state);
-            int half_width = get_width () / 2;
-
-            direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
-            // Ignore setting padding offset when it's the neighbouring icon
-            bool is_adjacent = adjacent != direction.NONE && dir == adjacent;
-            if (dir == direction.RIGHT && !is_adjacent) {
-                add_css_class (DND_RIGHT_CLASS_NAME);
-            } else if (dir == direction.LEFT && !is_adjacent) {
-                add_css_class (DND_LEFT_CLASS_NAME);
-            }
-            return Gdk.DragAction.MOVE;
-        });
-        drop_target.drop.connect ((value, x, y) => {
-            if (!value.holds (typeof (IconState))) {
-                warning ("Tried DND for invalid type: %s", value.type_name ());
-            }
-            unowned IconState drop_state = (IconState) value.get_object ();
-            if (drop_state == null || drop_state == this.state) {
-                return false;
-            }
-
-            int half_width = get_width () / 2;
-            direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
-            bool result = false;
-            if (drop_state.pinned || this.state.pinned) {
-                result |= pinnedList.dnd_drop (this.state, drop_state, dir);
-            }
-            if (!state.pinned) {
-                // Reposition icon (includes pinned -> unpinned dnd)
-                result |= drop_state.request_icon_reposition (this.state, dir);
-            }
-            return result;
-        });
-        if (!state.minimized) {
-            // Don't support DND for minimized icons
-            add_controller (drop_target);
-        }
 
         set_image_icon_from_app_info (app_info, state.app_id, image);
 
@@ -402,10 +272,5 @@ class Icon : Gtk.Box {
         assert (state != null && toplevel->app_id == state.app_id);
 
         refresh ();
-    }
-
-    private void reset_dnd_classes () {
-        remove_css_class (DND_LEFT_CLASS_NAME);
-        remove_css_class (DND_RIGHT_CLASS_NAME);
     }
 }

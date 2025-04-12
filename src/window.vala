@@ -39,17 +39,17 @@ public class Window : Gtk.ApplicationWindow {
         var factory = new Gtk.SignalListItemFactory ();
         factory.setup.connect ((factory, object) => {
             Gtk.ListItem item = (Gtk.ListItem) object;
-            item.set_child (new Icon (this));
+            item.set_child (new IconPadding (this));
         });
         factory.bind.connect ((factory, object) => {
             Gtk.ListItem item = (Gtk.ListItem) object;
-            unowned Icon icon = (Icon) item.get_child ();
+            unowned IconPadding icon = (IconPadding) item.get_child ();
             unowned IconState id = (IconState) item.get_item ();
             icon.init (id);
         });
         factory.unbind.connect ((factory, object) => {
             Gtk.ListItem item = (Gtk.ListItem) object;
-            unowned Icon icon = (Icon) item.get_child ();
+            unowned IconPadding icon = (IconPadding) item.get_child ();
             icon.disconnect_from_signals ();
         });
 

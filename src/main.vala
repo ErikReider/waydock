@@ -1,4 +1,5 @@
 public enum direction {
+    // TODO: Change to start/end
     LEFT = 0,
     RIGHT = 1,
     NONE = 2;
@@ -65,7 +66,7 @@ public static int main (string[] args) {
     try {
         SettingsSchemaSource sss = new SettingsSchemaSource.from_directory (settings_dir, null, false);
         SettingsSchema schema = sss.lookup ("org.erikreider.waydock", false);
-        if (sss.lookup == null) {
+        if (schema == null) {
             error ("ID not found.\n");
             return 0;
         }
@@ -87,7 +88,7 @@ public static int main (string[] args) {
         Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
     var app = new Gtk.Application ("org.erikreider.waydock",
-                                   ApplicationFlags.FLAGS_NONE);
+                                   ApplicationFlags.DEFAULT_FLAGS);
 
     app.activate.connect (() => {
         Window ? win = (Window) app.active_window;

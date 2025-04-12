@@ -2,9 +2,6 @@ $radius: 22px;
 $margin: $radius / 3.14;
 $transiton_delay: 100ms;
 $open_box_size: 6px;
-$icon_size: 48px;
-
-$icon_width: $icon_size + $margin;
 
 .dock {
   border-radius: $radius;
@@ -36,19 +33,11 @@ $icon_width: $icon_size + $margin;
 }
 
 .dock-icon {
-  -gtk-icon-size: $icon_size;
   & > image {
     transition: $transiton_delay ease;
   }
   padding: $margin / 2;
   transition: padding $transiton_delay ease;
-
-  &.dnd-hover-left {
-    padding-left: $icon_width;
-  }
-  &.dnd-hover-right {
-    padding-right: $icon_width;
-  }
 
   &.minimized > .icon-image {
     -gtk-icon-filter: brightness(0.8) saturate(0.7);
