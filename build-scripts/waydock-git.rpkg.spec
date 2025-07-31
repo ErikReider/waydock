@@ -1,6 +1,6 @@
 # vim: syntax=spec
 Name:       waydock-git
-Version:    {{{ git_repo_release }}}
+Version:    {{{ git_repo_release lead="$(git describe --tags --abbrev=0)" }}}
 Release:    {{{ echo -n "$(git rev-list --all --count)" }}}%{?dist}
 Summary:    A dock that supports wlroots-based WMs
 License:    GPLv3
@@ -25,8 +25,13 @@ BuildRequires: pkgconfig(gee-0.8)
 BuildRequires: pkgconfig(gtk4-wayland)
 BuildRequires: pkgconfig(wayland-client)
 BuildRequires: sassc
+BuildRequires: systemd-devel
+BuildRequires: pkgconfig(systemd)
+BuildRequires: systemd
 Requires: glib2
 Requires: gtk4-layer-shell
+
+%{?systemd_requires}
 
 %description
 A dock that supports wlroots-based WMs
@@ -41,9 +46,16 @@ A dock that supports wlroots-based WMs
 %install
 %meson_install
 
+%post
+%systemd_user_post waydock.service
+
+%preun
+%systemd_user_preun waydock.service
+
 %files
 %doc README.md
 %{_bindir}/waydock
+%{_userunitdir}/waydock.service
 %license LICENSE
 %{_datadir}/glib-2.0/schemas/org.erikreider.waydock.gschema.xml
 
