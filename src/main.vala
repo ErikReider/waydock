@@ -88,7 +88,9 @@ public static int main (string[] args) {
         Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
     var app = new Gtk.Application ("org.erikreider.waydock",
-                                   ApplicationFlags.DEFAULT_FLAGS);
+                                   ApplicationFlags.DEFAULT_FLAGS
+                                   | ApplicationFlags.ALLOW_REPLACEMENT
+                                   | ApplicationFlags.REPLACE);
 
     app.activate.connect (() => {
         Window ? win = (Window) app.active_window;
