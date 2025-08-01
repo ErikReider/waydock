@@ -1,22 +1,43 @@
 using WLR.ForeignToplevel;
 
-public class Toplevel {
+public class Toplevel : Object {
     public uint64 id = 0;
 
     public string title;
     public string app_id;
-    public Toplevel *parent;
+    public unowned Toplevel parent;
 
     public bool fullscreen = false;
     public bool activated = false;
     public bool minimized = false;
     public bool maximized = false;
 
-    public void * data;
+    private List<unowned IconState> icon_states = new List<unowned IconState> ();
 
     public unowned Handle handle;
 
     public bool done = false;
+
+    public unowned IconState ? get_icon_state (Window window) {
+        foreach (unowned IconState state in icon_states) {
+            if (!(state is IconState)) {
+                icon_states.remove_all (state);
+                continue;
+            }
+            if (state.window == window) {
+                return state;
+            }
+        }
+        return null;
+    }
+
+    public void append_icon_state (IconState state) {
+        icon_states.append (state);
+    }
+
+    public void remove_icon_state (IconState state) {
+        icon_states.remove_all (state);
+    }
 }
 
 public class WlrForeignHelper : Object {
@@ -41,14 +62,14 @@ public class WlrForeignHelper : Object {
     private Manager ? manager;
     private uint64 id_counter = 0;
 
-    public static List<Toplevel *> toplevels = new List<Toplevel *> ();
+    public static List<Toplevel> toplevels = new List<Toplevel> ();
     public bool started = false;
 
-    public signal void toplevel_changed (Toplevel * toplevel);
-    public signal void toplevel_focused (Toplevel * toplevel);
-    public signal void toplevel_minimize (Toplevel * toplevel);
-    public signal void toplevel_added (Toplevel * toplevel);
-    public signal void toplevel_removed (owned Toplevel toplevel);
+    public signal void toplevel_changed (Toplevel toplevel);
+    public signal void toplevel_focused (Toplevel toplevel);
+    public signal void toplevel_minimize (Toplevel toplevel);
+    public signal void toplevel_added (Toplevel toplevel);
+    public signal void toplevel_removed (Toplevel toplevel);
 
     public void start () {
         if (started) {
@@ -64,21 +85,21 @@ public class WlrForeignHelper : Object {
         }
     }
 
-    public void add_toplevel (Toplevel * toplevel) {
-        toplevel->id = id_counter;
+    public void add_toplevel (Toplevel toplevel) {
+        toplevel.id = id_counter;
         toplevels.append (toplevel);
         id_counter++;
         foreign_helper.toplevel_added (toplevel);
     }
 
-    public static bool activate_toplevel (Toplevel * toplevel) {
+    public static bool activate_toplevel (Toplevel toplevel) {
         if (toplevel == null) {
             return false;
         }
 
         unowned Gdk.Seat seat = Gdk.Display.get_default ().get_default_seat ();
         assert (seat is Gdk.Wayland.Seat);
-        toplevel->handle.activate (((Gdk.Wayland.Seat) seat).get_wl_seat ());
+        toplevel.handle.activate (((Gdk.Wayland.Seat) seat).get_wl_seat ());
 
         return true;
     }
@@ -106,8 +127,8 @@ public class WlrForeignHelper : Object {
     private void handle_toplevel (Manager manager, Handle handle) {
         unowned Wl.Display wl_display = get_wl_display ();
 
-        Toplevel * toplevel = new Toplevel ();
-        toplevel->handle = handle;
+        Toplevel toplevel = new Toplevel ();
+        toplevel.handle = handle;
         handle.add_listener (toplevel_listener, toplevel);
         if (wl_display.roundtrip () < 0) {
             return;
@@ -125,37 +146,37 @@ public class WlrForeignHelper : Object {
 
     private static void handle_title (void * data, Handle handle,
                                       string title) {
-        Toplevel * toplevel = (Toplevel *) data;
-        toplevel->title = title;
+        Toplevel toplevel = (Toplevel) data;
+        toplevel.title = title;
     }
 
     private static void handle_app_id (void * data, Handle handle,
                                        string app_id) {
-        Toplevel * toplevel = (Toplevel *) data;
-        toplevel->app_id = app_id;
+        Toplevel toplevel = (Toplevel) data;
+        toplevel.app_id = app_id;
     }
 
     private static void handle_output_enter (void * data, Handle handle,
                                              Wl.Output output) {
-        Toplevel * toplevel = (Toplevel *) data;
+        Toplevel toplevel = (Toplevel) data;
     }
 
     private static void handle_output_leave (void * data, Handle handle,
                                              Wl.Output output) {
-        Toplevel * toplevel = (Toplevel *) data;
+        Toplevel toplevel = (Toplevel) data;
     }
 
     private static void handle_state (void * data, Handle handle,
                                       Wl.Array states) {
-        Toplevel * toplevel = (Toplevel *) data;
+        Toplevel toplevel = (Toplevel) data;
 
-        bool initial_minimized_state = toplevel->minimized;
-        bool initial_activated_state = toplevel->activated;
+        bool initial_minimized_state = toplevel.minimized;
+        bool initial_activated_state = toplevel.activated;
 
-        toplevel->maximized = false;
-        toplevel->minimized = false;
-        toplevel->activated = false;
-        toplevel->fullscreen = false;
+        toplevel.maximized = false;
+        toplevel.minimized = false;
+        toplevel.activated = false;
+        toplevel.fullscreen = false;
 
         // Iterate through wl_array (extended the wl_array_for_each macro)
         uint32 * pos;
@@ -165,31 +186,31 @@ public class WlrForeignHelper : Object {
              pos++) {
             switch (*pos) {
                 case state.MAXIMIZED :
-                    toplevel->maximized = true;
+                    toplevel.maximized = true;
                     break;
                 case state.MINIMIZED:
-                    toplevel->minimized = true;
+                    toplevel.minimized = true;
                     break;
                 case state.ACTIVATED:
-                    toplevel->activated = true;
+                    toplevel.activated = true;
                     break;
                 case state.FULLSCREEN:
-                    toplevel->fullscreen = true;
+                    toplevel.fullscreen = true;
                     break;
             }
         }
-        if (initial_minimized_state != toplevel->minimized) {
+        if (initial_minimized_state != toplevel.minimized) {
             foreign_helper.toplevel_minimize (toplevel);
         }
-        if (initial_activated_state != toplevel->activated) {
+        if (initial_activated_state != toplevel.activated) {
             foreign_helper.toplevel_focused (toplevel);
         }
     }
 
     private static void handle_done (void * data, Handle handle) {
-        Toplevel * toplevel = (Toplevel *) data;
-        if (!toplevel->done) {
-            toplevel->done = true;
+        Toplevel toplevel = (Toplevel) data;
+        if (!toplevel.done) {
+            toplevel.done = true;
             foreign_helper.add_toplevel (toplevel);
         } else {
             foreign_helper.toplevel_changed (toplevel);
@@ -197,21 +218,20 @@ public class WlrForeignHelper : Object {
     }
 
     private static void handle_closed (void * data, Handle handle) {
-        Toplevel * toplevel = (Toplevel *) data;
+        Toplevel toplevel = (Toplevel) data;
         toplevels.remove (toplevel);
         // TODO: Does vala auto copy the toplevel?
         foreign_helper.toplevel_removed (toplevel);
-        free (toplevel);
     }
 
     private static void handle_parent (void * data, Handle handle,
                                        Handle ? parent) {
-        Toplevel * toplevel = (Toplevel *) data;
-        toplevel->parent = null;
+        Toplevel toplevel = (Toplevel) data;
+        toplevel.parent = null;
         if (parent != null) {
-            toplevel->parent = parent.get_user_data ();
+            toplevel.parent = (Toplevel) parent.get_user_data ();
             // TODO: Handle parent
-            print ("PARENT: %p %s: %p\n", handle, toplevel->app_id, parent);
+            print ("PARENT: %p %s: %p\n", handle, toplevel.app_id, parent);
         }
     }
 

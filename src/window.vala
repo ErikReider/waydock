@@ -6,8 +6,14 @@ public class Window : Gtk.ApplicationWindow {
 
     private Gtk.ListView list;
 
-    public Window (Gtk.Application app) {
-        Object (application: app);
+    public unowned Gdk.Monitor monitor { get; construct set; }
+
+    // TODO: Parse ~/.config/monitors.xml for primary output
+    public Window (Gtk.Application app, Gdk.Monitor monitor) {
+        Object (
+            application: app,
+            monitor: monitor
+        );
 
         // Layer shell
         GtkLayerShell.init_for_window (this);
@@ -15,6 +21,7 @@ public class Window : Gtk.ApplicationWindow {
         GtkLayerShell.set_namespace (this, "waydock");
         GtkLayerShell.set_exclusive_zone (this, 0);
         GtkLayerShell.auto_exclusive_zone_enable (this);
+        GtkLayerShell.set_monitor (this, monitor);
 
         GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, false);
         GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
@@ -77,7 +84,7 @@ public class Window : Gtk.ApplicationWindow {
 
         // Add all pinned
         foreach (string app_id in pinnedList.pinned) {
-            IconState state = new IconState (app_id, true);
+            IconState state = new IconState (this, app_id, true);
             state.request_icon_reposition.connect (request_icon_reposition_callback);
             list_object.append (state);
         }
@@ -106,7 +113,7 @@ public class Window : Gtk.ApplicationWindow {
         }
 
         // Fallback for if a repositioned pinned toplevel isn't running (not in list)
-        IconState state = new IconState (app_id, true);
+        IconState state = new IconState (this, app_id, true);
         state.request_icon_reposition.connect (request_icon_reposition_callback);
         list_object.append (state);
     }
@@ -163,22 +170,20 @@ public class Window : Gtk.ApplicationWindow {
         return true;
     }
 
-    private void toplevel_changed (Toplevel * toplevel) {
+    private void toplevel_changed (Toplevel toplevel) {
         // TODO: Remove from icon group if app_id changed
     }
 
-    private void toplevel_focused (Toplevel * toplevel) {
-        if (!toplevel->done) {
+    private void toplevel_focused (Toplevel toplevel) {
+        if (!toplevel.done) {
             return;
         }
 
-        IconState ? state = null;
-        if (toplevel->data != null) {
-            state = (IconState) toplevel->data;
-        } else {
+        unowned IconState ? state = toplevel.get_icon_state (this);
+        if (state == null) {
             for (uint i = 0; i < list_object.get_n_items (); i++) {
                 IconState iter_state = (IconState) list_object.get_item (i);
-                if (!iter_state.minimized && iter_state.app_id == toplevel->app_id) {
+                if (!iter_state.minimized && iter_state.app_id == toplevel.app_id) {
                     state = iter_state;
                     break;
                 }
@@ -189,20 +194,20 @@ public class Window : Gtk.ApplicationWindow {
         state.refresh ();
     }
 
-    private void toplevel_minimize (Toplevel * toplevel) {
-        if (toplevel == null || !toplevel->done) {
+    private void toplevel_minimize (Toplevel toplevel) {
+        if (toplevel == null || !toplevel.done) {
             return;
         }
 
-        if (toplevel->minimized) {
-            IconState state = new IconState (toplevel->app_id, false);
+        if (toplevel.minimized) {
+            IconState state = new IconState (this, toplevel.app_id, false);
             state.minimized = true;
             state.add_toplevel (toplevel);
             list_object.append (state);
         } else {
             for (uint i = 0; i < list_object.get_n_items (); i++) {
                 IconState state = (IconState) list_object.get_item (i);
-                Toplevel * first_toplevel = state.get_first_toplevel ();
+                unowned Toplevel first_toplevel = state.get_first_toplevel ();
                 if (first_toplevel == null) {
                     continue;
                 }
@@ -219,34 +224,34 @@ public class Window : Gtk.ApplicationWindow {
         }
     }
 
-    private void toplevel_added (Toplevel * toplevel) {
-        if (toplevel->minimized) {
+    private void toplevel_added (Toplevel toplevel) {
+        if (toplevel.minimized) {
             toplevel_minimize (toplevel);
         }
 
         // Check if icon with app_id already exists
         for (uint i = 0; i < list_object.get_n_items (); i++) {
             IconState state = (IconState) list_object.get_item (i);
-            if (!state.minimized && state.app_id == toplevel->app_id) {
-                toplevel->data = state;
+            if (!state.minimized && state.app_id == toplevel.app_id) {
+                toplevel.append_icon_state (state);
                 state.add_toplevel (toplevel);
                 return;
             }
         }
 
         // No previous icon with app_id exists, create a new one
-        IconState state = new IconState (toplevel->app_id, false);
-        toplevel->data = state;
+        IconState state = new IconState (this, toplevel.app_id, false);
+        toplevel.append_icon_state (state);
         state.add_toplevel (toplevel);
         state.request_icon_reposition.connect (request_icon_reposition_callback);
         list_object.append (state);
     }
 
-    private void toplevel_removed (owned Toplevel toplevel) {
+    private void toplevel_removed (Toplevel toplevel) {
         // Remove all minimized icons with Toplevel
         for (uint i = 0; i < list_object.get_n_items (); i++) {
             IconState state = (IconState) list_object.get_item (i);
-            Toplevel * first_toplevel = state.get_first_toplevel ();
+            unowned Toplevel first_toplevel = state.get_first_toplevel ();
             if (first_toplevel == null) {
                 continue;
             }
@@ -261,7 +266,7 @@ public class Window : Gtk.ApplicationWindow {
             }
         }
 
-        unowned IconState state = (IconState) toplevel.data;
+        unowned IconState ? state = toplevel.get_icon_state (this);
         if (state == null) {
             for (uint i = 0; i < list_object.get_n_items (); i++) {
                 IconState iter_state = (IconState) list_object.get_item (i);

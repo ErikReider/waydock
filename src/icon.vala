@@ -188,8 +188,8 @@ class Icon : Gtk.Box {
             SimpleAction simple_action = new SimpleAction ("close", null);
             simple_action.activate.connect (() => {
                 foreach (var toplevel in state.toplevels) {
-                    if (toplevel != null && toplevel->handle != null) {
-                        toplevel->handle.close ();
+                    if (toplevel != null && toplevel.handle != null) {
+                        toplevel.handle.close ();
                     }
                 }
             });
@@ -216,8 +216,8 @@ class Icon : Gtk.Box {
             app_name = app_info.get_display_name ();
         } else {
             unowned var link = state.toplevels.first ();
-            if (link != null && link.data != null && link.data->title != null) {
-                app_name = link.data->title;
+            if (link != null && link.data != null && link.data.title != null) {
+                app_name = link.data.title;
             } else {
                 app_name = state.app_id ?? "Unknown";
             }
@@ -228,8 +228,8 @@ class Icon : Gtk.Box {
         if (state.minimized) {
             string app_name = state.app_id ?? "Unknown";
             unowned var link = state.toplevels.first ();
-            if (link != null && link.data != null && link.data->title != null) {
-                app_name = link.data->title;
+            if (link != null && link.data != null && link.data.title != null) {
+                app_name = link.data.title;
             }
             set_tooltip_text (app_name);
         } else if (state.toplevels.length () <= 1) {
@@ -265,11 +265,11 @@ class Icon : Gtk.Box {
         set_tooltip ();
     }
 
-    public void toplevel_added (Toplevel * toplevel) {
+    public void toplevel_added (Toplevel toplevel) {
         if (state != null && state.app_id == null) {
-            state.app_id = toplevel->app_id;
+            state.app_id = toplevel.app_id;
         }
-        assert (state != null && toplevel->app_id == state.app_id);
+        assert (state != null && toplevel.app_id == state.app_id);
 
         refresh ();
     }

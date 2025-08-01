@@ -13,6 +13,9 @@ static PinnedList pinnedList;
 
 static List<AppInfo> all_app_infos;
 
+static bool activated = false;
+static Gtk.Application app;
+
 static void print_help (string program) {
     print ("Usage:\n");
     print ("\t %s <OPTION>\n".printf (program));
@@ -87,19 +90,51 @@ public static int main (string[] args) {
         css_provider,
         Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
-    var app = new Gtk.Application ("org.erikreider.waydock",
+    app = new Gtk.Application ("org.erikreider.waydock",
                                    ApplicationFlags.DEFAULT_FLAGS
                                    | ApplicationFlags.ALLOW_REPLACEMENT
                                    | ApplicationFlags.REPLACE);
 
     app.activate.connect (() => {
-        Window ? win = (Window) app.active_window;
-        if (win == null) {
-            win = new Window (app);
-            foreign_helper.start ();
-        }
-        win.present ();
+        if (activated) return;
+        activated = true;
+        init ();
+        foreign_helper.start ();
     });
 
     return app.run ();
+}
+
+private static void init () {
+    Gdk.Display ? display = Gdk.Display.get_default ();
+    if (display == null) return;
+
+    unowned ListModel monitors = display.get_monitors ();
+    monitors.items_changed.connect (() => {
+        init_windows (monitors);
+    });
+
+    init_windows (monitors);
+}
+
+private static void close_all_windows () {
+    foreach (var window in app.get_windows ()) {
+        window.close ();
+    }
+}
+
+private static void add_window (Gdk.Monitor monitor) {
+    Window win = new Window (app, monitor);
+    win.present ();
+}
+
+private static void init_windows (ListModel monitors) {
+    close_all_windows ();
+
+    for (int i = 0; i < monitors.get_n_items (); i++) {
+        Object ? obj = monitors.get_item (i);
+        if (obj == null || !(obj is Gdk.Monitor)) continue;
+        Gdk.Monitor monitor = (Gdk.Monitor) obj;
+        add_window (monitor);
+    }
 }
