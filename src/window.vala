@@ -162,7 +162,7 @@ public class Window : Gtk.ApplicationWindow {
             debug ("Could not find target_state in List Store");
             return false;
         }
-        if (dir == direction.RIGHT) {
+        if (dir == direction.END) {
             insert_index = (insert_index + 1).clamp (0, list_object.get_n_items ());
         }
 
@@ -340,13 +340,13 @@ public class Window : Gtk.ApplicationWindow {
         if (ref_pos - 1 >= 0) {
             IconState ? state = (IconState ?) list_object.get_item_sorted (ref_pos - 1);
             if (state != null && state == sibling) {
-                return direction.LEFT;
+                return direction.START;
             }
         }
         if (ref_pos + 1 < list_object.get_n_items ()) {
             IconState ? state = (IconState ?) list_object.get_item_sorted (ref_pos + 1);
             if (state != null && state == sibling) {
-                return direction.RIGHT;
+                return direction.END;
             }
         }
 

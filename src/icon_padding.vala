@@ -1,74 +1,25 @@
-// private class IconPaddingLayout : Gtk.LayoutManager {
-//
-//     protected override void measure (Gtk.Widget widget, Gtk.Orientation orientation,
-//                                      int for_size, out int minimum, out int natural,
-//                                      out int minimum_baseline, out int natural_baseline) {
-//         Gtk.Widget child;
-//         int minimum_size = 0;
-//         int natural_size = 0;
-//
-//         for (child = widget.get_first_child ();
-//              child != null;
-//              child = child.get_next_sibling ()) {
-//
-//             if (!child.should_layout ()) {
-//                 continue;
-//             }
-//
-//             int child_min = 0;
-//             int child_nat = 0;
-//             child.measure (orientation, -1, out child_min, out child_nat, null, null);
-//
-//             minimum_size = int.max (minimum_size, child_min);
-//             natural_size = int.max (natural_size, child_nat);
-//         }
-//
-//         minimum = (int) (n_children * minimum_size / Math.PI + minimum_size);
-//         natural = (int) (n_children * natural_size / Math.PI + natural_size);
-//         minimum_baseline = -1;
-//         natural_baseline = -1;
-//     }
-//
-//     protected override void allocate (Gtk.Widget widget, int width, int height, int baseline) {
-//     }
-//
-//     protected override Gtk.SizeRequestMode get_request_mode (Gtk.Widget widget) {
-//         return Gtk.SizeRequestMode.CONSTANT_SIZE;
-//     }
-// }
-
 public class IconPadding : Gtk.Widget {
-    const int TRANSITION_DURATION = 500;
+    const int TRANSITION_DURATION = 250;
     direction drag_direction = direction.NONE;
 
     unowned Window window;
     Icon icon;
 
-    private double animation_progress = 1.0;
-    private double animation_progress_inv {
-        get {
-            return (1 - animation_progress);
-        }
-    }
-    private Adw.TimedAnimation ? animation;
-
-    private double padding_offset = 0.0;
+    private double start_animation_progress = 0.0;
+    private Adw.TimedAnimation ? start_animation;
+    private double end_animation_progress = 0.0;
+    private Adw.TimedAnimation ? end_animation;
 
     public IconPadding (Window window) {
         this.window = window;
         this.icon = new Icon (window);
 
-        Adw.CallbackAnimationTarget target = new Adw.CallbackAnimationTarget (animation_value_cb);
-        animation = new Adw.TimedAnimation (this, 1.0, 0.0, TRANSITION_DURATION, target);
+        Adw.CallbackAnimationTarget start_target = new Adw.CallbackAnimationTarget (start_animation_value_cb);
+        start_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, start_target);
+        Adw.CallbackAnimationTarget end_target = new Adw.CallbackAnimationTarget (end_animation_value_cb);
+        end_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, end_target);
 
         icon.set_parent (this);
-
-        // set_layout_manager (new Gtk.CustomLayout (layout_get_request_mode,
-        //                                           layout_measure,
-        //                                           layout_allocate));
-        // set_layout_manager_type (typeof(Gtk.BinLayout));
-        // size_allocate (icon.get_width (), icon.get_height (), -1);
-        // size_allocate (100, 100, -1);
     }
 
     protected override Gtk.SizeRequestMode get_request_mode () {
@@ -95,83 +46,41 @@ public class IconPadding : Gtk.Widget {
         minimum = child_min;
         natural = child_nat;
 
+        // TODO: Change depending on dock direction
         if (orientation != Gtk.Orientation.HORIZONTAL) {
             return;
         }
-        print ("MIN: %i %i\n", minimum, natural);
 
-        switch (drag_direction) {
-            case direction.LEFT :
-                minimum *= 2;
-                natural *= 2;
-                break;
-            case direction.RIGHT:
-                minimum *= 2;
-                natural *= 2;
-                break;
-            case direction.NONE:
-                break;
-        }
+        minimum += (int) (minimum * start_animation_progress + minimum * end_animation_progress);
+        natural += (int) (natural * start_animation_progress + natural * end_animation_progress);
     }
 
     protected override void size_allocate (int width, int height, int baseline) {
         Gtk.Requisition child_req;
         icon.get_preferred_size (out child_req, null);
 
-        Gtk.Allocation allocation = Gtk.Allocation () {
-            x = 0,
-            y = 0,
-            width = child_req.width,
-            height = child_req.height,
-        };
-        switch (drag_direction) {
-            case direction.LEFT :
-                allocation.x += allocation.width;
-                break;
-            case direction.RIGHT:
-                break;
-            case direction.NONE:
-                break;
-        }
-
-        icon.allocate_size (allocation, -1);
+        Gsk.Transform transform = new Gsk.Transform ()
+            .translate (
+                Graphene.Point ().init (
+                    // TODO: Dock direction
+                    (int) (child_req.width * start_animation_progress),
+                    0)
+            );
+        icon.allocate (child_req.width, child_req.height, -1, transform);
     }
 
-    void animation_value_cb (double progress) {
-        animation_progress = progress;
-
-        queue_draw ();
+    void start_animation_value_cb (double progress) {
+        start_animation_progress = progress;
+        queue_resize ();
     }
 
-    // public override void measure (Gtk.Orientation orientation, int for_size,
-    // out int minimum, out int natural,
-    // out int minimum_baseline, out int natural_baseline) {
-    // }
-
-    public override void snapshot (Gtk.Snapshot snapshot) {
-        // size_allocate (100, 100, -1);
-        var clip = Graphene.Rect () {
-            origin = Graphene.Point.zero (),
-            size = Graphene.Size () {
-                width = get_width (),
-                height = get_height (),
-            },
-        };
-        // snapshot.push_clip (clip);
-        var point = Graphene.Point () {
-            x = 0,
-            y = 0,
-        };
-        // snapshot.translate (point);
-        snapshot_child (icon, snapshot);
-
-        // snapshot.pop ();
+    void end_animation_value_cb (double progress) {
+        end_animation_progress = progress;
+        queue_resize ();
     }
 
     public inline void init (IconState state) {
         icon.init (state);
-        // size_allocate (100, 100, -1);
-
         init_dnd ();
     }
 
@@ -180,13 +89,29 @@ public class IconPadding : Gtk.Widget {
     }
 
     private void set_drag_direction (direction dir) {
+        if (drag_direction == dir) {
+            return;
+        }
         drag_direction = dir;
 
-        queue_resize ();
-
-        // Start the animation
-        // animation.set_value_to (0);
-        // animation.play ();
+        switch (dir) {
+            case direction.START:
+                start_animation.value_to = 1.0;
+                end_animation.value_to = 0.0;
+                break;
+            case direction.END:
+                start_animation.value_to = 0.0;
+                end_animation.value_to = 1.0;
+                break;
+            case direction.NONE:
+                start_animation.value_to = 0.0;
+                end_animation.value_to = 0.0;
+                break;
+        }
+        start_animation.value_from = start_animation_progress;
+        end_animation.value_from = end_animation_progress;
+        start_animation.play ();
+        end_animation.play ();
     }
 
     private void init_dnd () {
@@ -241,13 +166,13 @@ public class IconPadding : Gtk.Widget {
             direction adjacent = window.icon_is_adjacent (icon.state, drag_state);
             int half_width = get_width () / 2;
 
-            direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
+            direction dir = x > half_width ? direction.END : direction.START;
             // Ignore setting padding offset when it's the neighbouring icon
             bool is_adjacent = adjacent != direction.NONE && dir == adjacent;
-            if (dir == direction.RIGHT && !is_adjacent) {
-                set_drag_direction (direction.RIGHT);
-            } else if (dir == direction.LEFT && !is_adjacent) {
-                set_drag_direction (direction.LEFT);
+            if (dir == direction.END && !is_adjacent) {
+                set_drag_direction (direction.END);
+            } else if (dir == direction.START && !is_adjacent) {
+                set_drag_direction (direction.START);
             } else {
                 set_drag_direction (direction.NONE);
             }
@@ -263,7 +188,7 @@ public class IconPadding : Gtk.Widget {
             }
 
             int half_width = get_width () / 2;
-            direction dir = x > half_width ? direction.RIGHT : direction.LEFT;
+            direction dir = x > half_width ? direction.END : direction.START;
             bool result = false;
             if (drop_state.pinned || icon.state.pinned) {
                 result |= pinnedList.dnd_drop (icon.state, drop_state, dir);
@@ -276,8 +201,3 @@ public class IconPadding : Gtk.Widget {
         });
     }
 }
-
-
-
-
-

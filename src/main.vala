@@ -1,7 +1,7 @@
 public enum direction {
     // TODO: Change to start/end
-    LEFT = 0,
-    RIGHT = 1,
+    START = 0,
+    END = 1,
     NONE = 2;
 }
 

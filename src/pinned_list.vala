@@ -79,7 +79,7 @@ class PinnedList {
         // Only get the next node on right due to always calling `insert_before`.
         // Not needed for the left direction
         bool insert_last = false;
-        if (dir == direction.RIGHT) {
+        if (dir == direction.END) {
             if (node == pinned.last ()) {
                 insert_last = true;
             } else {
