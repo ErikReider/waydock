@@ -37,8 +37,7 @@ window {
   }
 
   & > dockitem {
-    margin: 0 $margin / 2;
-    padding: 0;
+    padding: 0 $margin / 2;
     /* Remove the dnd border */
     box-shadow: none;
   }

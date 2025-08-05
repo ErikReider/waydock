@@ -161,42 +161,9 @@ public class DockItem : Gtk.Widget {
                                                          Gdk.DragAction.MOVE);
         drop_target.set_preload (true);
         add_controller (drop_target);
-        drop_target.enter.connect (() => {
-            set_drag_direction (direction.NONE);
-            return Gdk.DragAction.MOVE;
-        });
         drop_target.leave.connect (() => set_drag_direction (direction.NONE));
-        drop_target.motion.connect ((x, y) => {
-            // Skip self
-            Value ? value = drop_target.get_value ();
-            if (value == null || !value.holds (typeof (IconState))
-                || icon.state == value.get_object ()) {
-                return 0;
-            }
-            IconState drag_state = (IconState) value.get_object ();
-
-            direction adjacent = window.icon_is_adjacent (icon.state, drag_state);
-
-            direction dir;
-            if (window.orientation == Gtk.Orientation.HORIZONTAL) {
-                int half_width = get_width () / 2;
-                dir = x > half_width ? direction.END : direction.START;
-            } else {
-                int half_height = get_height () / 2;
-                dir = y > half_height ? direction.END : direction.START;
-            }
-
-            // Ignore setting padding offset when it's the neighbouring icon
-            bool is_adjacent = adjacent != direction.NONE && dir == adjacent;
-            if (dir == direction.END && !is_adjacent) {
-                set_drag_direction (direction.END);
-            } else if (dir == direction.START && !is_adjacent) {
-                set_drag_direction (direction.START);
-            } else {
-                set_drag_direction (direction.NONE);
-            }
-            return Gdk.DragAction.MOVE;
-        });
+        drop_target.enter.connect (calculate_dnd_direction);
+        drop_target.motion.connect (calculate_dnd_direction);
         drop_target.drop.connect ((value, x, y) => {
             if (!value.holds (typeof (IconState))) {
                 warning ("Tried DND for invalid type: %s", value.type_name ());
@@ -224,5 +191,38 @@ public class DockItem : Gtk.Widget {
             }
             return result;
         });
+    }
+
+    private Gdk.DragAction calculate_dnd_direction (Gtk.DropTarget drop_target,
+                                                    double x, double y) {
+        // Skip self
+        Value ? value = drop_target.get_value ();
+        if (value == null || !value.holds (typeof (IconState))
+            || icon.state == value.get_object ()) {
+            return 0;
+        }
+        IconState drag_state = (IconState) value.get_object ();
+
+        direction adjacent = window.icon_is_adjacent (icon.state, drag_state);
+
+        direction dir;
+        if (window.orientation == Gtk.Orientation.HORIZONTAL) {
+            int half_width = get_width () / 2;
+            dir = x > half_width ? direction.END : direction.START;
+        } else {
+            int half_height = get_height () / 2;
+            dir = y > half_height ? direction.END : direction.START;
+        }
+
+        // Ignore setting padding offset when it's the neighbouring icon
+        bool is_adjacent = adjacent != direction.NONE && dir == adjacent;
+        if (dir == direction.END && !is_adjacent) {
+            set_drag_direction (direction.END);
+        } else if (dir == direction.START && !is_adjacent) {
+            set_drag_direction (direction.START);
+        } else {
+            set_drag_direction (direction.NONE);
+        }
+        return Gdk.DragAction.MOVE;
     }
 }
