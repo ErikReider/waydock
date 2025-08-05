@@ -50,11 +50,12 @@ window {
 }
 
 .dock-icon {
-  & > image {
-    transition: $transiton_delay ease;
-  }
   padding: $margin / 2;
   transition: padding $transiton_delay ease;
+
+  & > .icon-image {
+    transition: -gtk-icon-filter $transiton_delay ease;
+  }
 
   &.minimized > .icon-image {
     -gtk-icon-filter: brightness(0.8) saturate(0.7);

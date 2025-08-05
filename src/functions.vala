@@ -244,6 +244,45 @@ static unowned Wl.Display get_wl_display () {
     GLib.error ("Only supports Wayland!");
 }
 
+static Gdk.Paintable ? get_paintable_from_app_info (DesktopAppInfo ? app_info,
+                                                    string ? app_id,
+                                                    int size,
+                                                    int scale_factor) {
+    unowned var display = Gdk.Display.get_default ();
+    unowned Gtk.IconTheme theme = Gtk.IconTheme.get_for_display (display);
+
+    // Fallback
+    string ? icon_string = app_id;
+    if (icon_string == null || !theme.has_icon (icon_string)) {
+        icon_string = "application-x-executable";
+    }
+    Gtk.IconPaintable ? paintable = theme.lookup_icon (
+        icon_string, null, size, scale_factor,
+        Gtk.TextDirection.NONE, 0);
+
+    // Try setting from the desktop app info
+    if (app_info == null) {
+        return paintable;
+    }
+    unowned GLib.Icon ? icon = app_info.get_icon ();
+    if (!(icon is ThemedIcon)) {
+        return paintable;
+    }
+    unowned ThemedIcon t_icon = (ThemedIcon) icon;
+    foreach (string name in t_icon.names) {
+        if (!theme.has_icon (name)) {
+            continue;
+        }
+        Gtk.IconPaintable ? icon_paintable = theme.lookup_by_gicon (
+            icon, size, scale_factor, Gtk.TextDirection.NONE, 0);
+        if (icon_paintable != null) {
+            return icon_paintable;
+        }
+    }
+
+    return paintable;
+}
+
 static void set_image_icon_from_app_info (DesktopAppInfo ? app_info,
                                           string ? app_id,
                                           Gtk.Image image) {

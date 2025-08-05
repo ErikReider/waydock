@@ -7,10 +7,14 @@ public class Icon : Gtk.Box {
 
     Gtk.GestureClick gesture_click;
 
-    public Gtk.Image image { get; private set; }
+    private Gtk.Image image { get; private set; }
     private Gtk.Box num_open_box;
 
     private unowned Window window;
+
+    public int pixel_size {
+        get { return image.pixel_size; }
+    }
 
     public Icon (Window window) {
         Object (
@@ -65,6 +69,13 @@ public class Icon : Gtk.Box {
         listen_to_signals ();
 
         refresh ();
+    }
+
+    public inline Gdk.Paintable get_paintable () {
+        return get_paintable_from_app_info (app_info,
+                                            state.app_id,
+                                            image.pixel_size,
+                                            get_scale_factor ());
     }
 
     public void listen_to_signals () {

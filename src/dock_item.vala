@@ -133,8 +133,12 @@ public class DockItem : Gtk.Widget {
         drag_source.set_actions (Gdk.DragAction.MOVE);
         add_controller (drag_source);
         drag_source.prepare.connect ((x, y) => {
-            drag_source.set_icon (new Gtk.WidgetPaintable (icon.image),
-                                  (int) x, (int) y);
+            int scale = get_scale_factor ();
+            int size = icon.pixel_size;
+
+            drag_source.set_icon (icon.get_paintable (),
+                                  size / (2 * scale),
+                                  size / (2 * scale));
 
             Value drop_value = Value (typeof (IconState));
             drop_value.set_object (icon.state);
