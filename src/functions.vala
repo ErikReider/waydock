@@ -175,8 +175,8 @@ private static DesktopAppInfo ? try_app_info_search (string app_id, string test_
             DesktopAppInfo app_info = new DesktopAppInfo (entry);
 
             if (first_choice == null
-                && (app_info.get_startup_wm_class ().down () == app_id.down ()
-                || app_info.get_startup_wm_class ().down () == test_id.down ())) {
+                && (app_info.get_startup_wm_class ()?.down () == app_id.down ()
+                || app_info.get_startup_wm_class ()?.down () == test_id.down ())) {
                 first_choice = app_info;
                 continue;
             }
@@ -190,7 +190,7 @@ private static DesktopAppInfo ? try_app_info_search (string app_id, string test_
                 // Backup
                 if (entry->contains (app_id)) {
                     second_choice = new DesktopAppInfo (entry);
-                } else if (app_info.get_name ().down () == app_id.down ()) {
+                } else if (app_info.get_name ()?.down () == app_id.down ()) {
                     second_choice = app_info;
                 } else if (app_info.get_executable () == app_id) {
                     second_choice = app_info;
