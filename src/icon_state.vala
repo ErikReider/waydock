@@ -5,14 +5,11 @@ public class IconState : Object {
 
     public List<unowned Toplevel> toplevels;
 
-    public unowned Window window { get; construct set; }
-
     public signal void refresh ();
     public signal void toplevel_added (Toplevel toplevel);
     public signal bool request_icon_reposition (IconState target_state, direction dir);
 
-    public IconState (Window window, string ? app_id, bool pinned) {
-        Object(window: window);
+    public IconState (string ? app_id, bool pinned) {
         this.app_id = app_id;
         this.pinned = pinned;
         this.toplevels = new List<unowned Toplevel> ();
@@ -42,5 +39,42 @@ public class IconState : Object {
         }
         return first_link.data;
     }
+
+    public static bool request_icon_reposition_callback (IconState drag_state,
+                                                         IconState target_state,
+                                                         direction dir) {
+        if (dir == direction.NONE) {
+            return false;
+        }
+        if (drag_state.pinned || drag_state.minimized
+            || target_state.pinned || target_state.minimized) {
+            debug ("Skipping pinned/minimized reordering");
+            return false;
+        }
+
+        // Firstly, remove drag from list so that the target_position doesn't
+        // get messed up
+        uint drag_position;
+        if (!list_object.find (drag_state, out drag_position)) {
+            debug ("Could not find drag_state in List Store");
+            return false;
+        }
+        list_object.remove (drag_position);
+
+        // Find the target position and adjust the index depending on if
+        // dropped behind or in front of the target icon
+        uint insert_index;
+        if (!list_object.find (target_state, out insert_index)) {
+            debug ("Could not find target_state in List Store");
+            return false;
+        }
+        if (dir == direction.END) {
+            insert_index = (insert_index + 1).clamp (0, list_object.get_n_items ());
+        }
+
+        list_object.insert (insert_index, drag_state);
+        return true;
+    }
+
 }
 

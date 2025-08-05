@@ -1,4 +1,4 @@
-class Icon : Gtk.Box {
+public class Icon : Gtk.Box {
     public unowned IconState ? state { get; private set; default = null; }
     public DesktopAppInfo ? app_info;
     private KeyFile ? keyfile;
@@ -13,7 +13,10 @@ class Icon : Gtk.Box {
     private unowned Window window;
 
     public Icon (Window window) {
-        Object (orientation : Gtk.Orientation.VERTICAL, spacing : 4);
+        Object (
+            orientation: window.opposite_orientation,
+            spacing: 4
+        );
         this.window = window;
 
         add_css_class ("dock-icon");
@@ -26,6 +29,7 @@ class Icon : Gtk.Box {
 
         num_open_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
         num_open_box.set_halign (Gtk.Align.CENTER);
+        num_open_box.set_valign (Gtk.Align.CENTER);
         num_open_box.add_css_class ("num_open_box");
         append (num_open_box);
     }
@@ -103,15 +107,39 @@ class Icon : Gtk.Box {
         popover.set_parent (window);
 
         Graphene.Point out_point;
-        Graphene.Point point = { get_width () / 2, 0, };
-        compute_point (window, point, out out_point);
+        compute_point (window, Graphene.Point.zero (), out out_point);
         var rect = Gdk.Rectangle () {
             x = (int) out_point.x,
-            y = 0,
+            y = (int) out_point.y,
+            width = get_width (),
+            height = get_height (),
         };
         popover.set_pointing_to (rect);
 
-        popover.set_position (Gtk.PositionType.TOP);
+        switch (window.orientation) {
+        case Gtk.Orientation.HORIZONTAL:
+            switch (window.orientation_direction) {
+            case direction.START:
+                popover.set_position (Gtk.PositionType.BOTTOM);
+                break;
+            case direction.END:
+            case direction.NONE:
+                popover.set_position (Gtk.PositionType.TOP);
+                break;
+            }
+            break;
+        case Gtk.Orientation.VERTICAL:
+            switch (window.orientation_direction) {
+            case direction.START:
+            case direction.NONE:
+                popover.set_position (Gtk.PositionType.RIGHT);
+                break;
+            case direction.END:
+                popover.set_position (Gtk.PositionType.LEFT);
+                break;
+            }
+            break;
+        }
 
         popover.popup ();
     }
@@ -244,6 +272,8 @@ class Icon : Gtk.Box {
             return;
         }
 
+        num_open_box.set_orientation (window.orientation);
+
         // Clear all previous
         unowned Gtk.Widget widget = num_open_box.get_first_child ();
         while ((widget = num_open_box.get_first_child ()) != null) {
@@ -259,10 +289,24 @@ class Icon : Gtk.Box {
     }
 
     public void refresh () {
+        set_orientation (window.opposite_orientation);
+
         refresh_name ();
         set_running_circles ();
         // TODO: Popover tooltips instead to always make them appear above the dock
         set_tooltip ();
+
+        // Reposition the running circles depending on the window position to
+        // ensure that the buttons always are closest to the monitor edge.
+        switch (window.orientation_direction) {
+        case direction.START:
+            reorder_child_after (num_open_box, null);
+            break;
+        case direction.NONE:
+        case direction.END:
+            reorder_child_after (num_open_box, image);
+            break;
+        }
     }
 
     public void toplevel_added (Toplevel toplevel) {

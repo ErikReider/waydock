@@ -1,1 +1,1 @@
-option('use-global-gschema', type: 'boolean', value: true, description: 'Use the global built gschema for SwaySettings')
+option('use-global-gschema', type: 'boolean', value: true, description: 'Use the global built gschema for waydock')

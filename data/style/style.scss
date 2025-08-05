@@ -3,32 +3,49 @@ $margin: $radius / 3.14;
 $transiton_delay: 100ms;
 $open_box_size: 6px;
 
+window {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
 .dock {
   border-radius: $radius;
-  background: #{"alpha(@window_bg_color, 0.5)"};
+  margin: $margin;
+  padding: $margin;
+  background: #{"alpha(var(--window-bg-color), 0.5)"};
 
-  & > listview {
-    margin: $margin;
-    margin-bottom: 0;
-    background: transparent;
-
-    & > row {
-      margin: 0 $margin / 2;
-      padding: 0;
-
-      &:hover {
-        background: initial;
-      }
+  &.vertical {
+    &.start {
+      margin-right: 0;
+      padding-left: 0;
     }
-
-    & > header {
-      padding: $margin 0;
-      padding-bottom: $margin + $open_box_size;
-
-      & > separator {
-        margin: 0 $margin;
-      }
+    &.end {
+      margin-left: 0;
+      padding-right: 0;
     }
+  }
+  &.horizontal {
+    &.start {
+      margin-bottom: 0;
+      padding-top: 0;
+    }
+    &.end {
+      margin-top: 0;
+      padding-bottom: 0;
+    }
+  }
+
+  & > dockitem {
+    margin: 0 $margin / 2;
+    padding: 0;
+    /* Remove the dnd border */
+    box-shadow: none;
+  }
+
+  & > separator {
+    margin: $margin 0;
+    margin-bottom: $margin + $open_box_size;
   }
 }
 
@@ -52,6 +69,7 @@ $open_box_size: 6px;
 
   & > .num_open_box {
     min-height: $open_box_size;
+    min-width: $open_box_size;
     margin-top: 2px;
 
     & > .circle {

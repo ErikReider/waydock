@@ -1,4 +1,4 @@
-public class IconPadding : Gtk.Widget {
+public class DockItem : Gtk.Widget {
     const int TRANSITION_DURATION = 250;
     direction drag_direction = direction.NONE;
 
@@ -10,7 +10,9 @@ public class IconPadding : Gtk.Widget {
     private double end_animation_progress = 0.0;
     private Adw.TimedAnimation ? end_animation;
 
-    public IconPadding (Window window) {
+    public DockItem (Window window) {
+        Object(css_name: "dockitem");
+
         this.window = window;
         this.icon = new Icon (window);
 
@@ -46,8 +48,7 @@ public class IconPadding : Gtk.Widget {
         minimum = child_min;
         natural = child_nat;
 
-        // TODO: Change depending on dock direction
-        if (orientation != Gtk.Orientation.HORIZONTAL) {
+        if (orientation != window.orientation) {
             return;
         }
 
@@ -59,12 +60,12 @@ public class IconPadding : Gtk.Widget {
         Gtk.Requisition child_req;
         icon.get_preferred_size (out child_req, null);
 
+        int is_horizontal = (int) (window.orientation == Gtk.Orientation.HORIZONTAL);
         Gsk.Transform transform = new Gsk.Transform ()
             .translate (
                 Graphene.Point ().init (
-                    // TODO: Dock direction
-                    (int) (child_req.width * start_animation_progress),
-                    0)
+                    (int) (child_req.width * start_animation_progress) * is_horizontal,
+                    (int) (child_req.height * start_animation_progress) * (1 - is_horizontal))
             );
         icon.allocate (child_req.width, child_req.height, -1, transform);
     }
@@ -84,6 +85,10 @@ public class IconPadding : Gtk.Widget {
         init_dnd ();
     }
 
+    public inline void refresh () {
+        icon.refresh ();
+    }
+
     public inline void disconnect_from_signals () {
         icon.disconnect_from_signals ();
     }
@@ -93,6 +98,9 @@ public class IconPadding : Gtk.Widget {
             return;
         }
         drag_direction = dir;
+
+        start_animation.pause ();
+        end_animation.pause ();
 
         switch (dir) {
             case direction.START:
@@ -164,9 +172,16 @@ public class IconPadding : Gtk.Widget {
             IconState drag_state = (IconState) value.get_object ();
 
             direction adjacent = window.icon_is_adjacent (icon.state, drag_state);
-            int half_width = get_width () / 2;
 
-            direction dir = x > half_width ? direction.END : direction.START;
+            direction dir;
+            if (window.orientation == Gtk.Orientation.HORIZONTAL) {
+                int half_width = get_width () / 2;
+                dir = x > half_width ? direction.END : direction.START;
+            } else {
+                int half_height = get_height () / 2;
+                dir = y > half_height ? direction.END : direction.START;
+            }
+
             // Ignore setting padding offset when it's the neighbouring icon
             bool is_adjacent = adjacent != direction.NONE && dir == adjacent;
             if (dir == direction.END && !is_adjacent) {
@@ -187,8 +202,14 @@ public class IconPadding : Gtk.Widget {
                 return false;
             }
 
-            int half_width = get_width () / 2;
-            direction dir = x > half_width ? direction.END : direction.START;
+            direction dir;
+            if (window.orientation == Gtk.Orientation.HORIZONTAL) {
+                int half_width = get_width () / 2;
+                dir = x > half_width ? direction.END : direction.START;
+            } else {
+                int half_height = get_height () / 2;
+                dir = y > half_height ? direction.END : direction.START;
+            }
             bool result = false;
             if (drop_state.pinned || icon.state.pinned) {
                 result |= pinnedList.dnd_drop (icon.state, drop_state, dir);

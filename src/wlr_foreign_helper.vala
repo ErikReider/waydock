@@ -12,32 +12,11 @@ public class Toplevel : Object {
     public bool minimized = false;
     public bool maximized = false;
 
-    private List<unowned IconState> icon_states = new List<unowned IconState> ();
+    public unowned IconState ? icon_state = null;
 
     public unowned Handle handle;
 
     public bool done = false;
-
-    public unowned IconState ? get_icon_state (Window window) {
-        foreach (unowned IconState state in icon_states) {
-            if (!(state is IconState)) {
-                icon_states.remove_all (state);
-                continue;
-            }
-            if (state.window == window) {
-                return state;
-            }
-        }
-        return null;
-    }
-
-    public void append_icon_state (IconState state) {
-        icon_states.append (state);
-    }
-
-    public void remove_icon_state (IconState state) {
-        icon_states.remove_all (state);
-    }
 }
 
 public class WlrForeignHelper : Object {
@@ -220,7 +199,6 @@ public class WlrForeignHelper : Object {
     private static void handle_closed (void * data, Handle handle) {
         Toplevel toplevel = (Toplevel) data;
         toplevels.remove (toplevel);
-        // TODO: Does vala auto copy the toplevel?
         foreign_helper.toplevel_removed (toplevel);
     }
 

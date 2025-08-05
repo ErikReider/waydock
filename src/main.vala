@@ -1,5 +1,4 @@
 public enum direction {
-    // TODO: Change to start/end
     START = 0,
     END = 1,
     NONE = 2;
@@ -7,9 +6,9 @@ public enum direction {
 
 static Settings self_settings;
 
-static WlrForeignHelper foreign_helper;
-
 static PinnedList pinnedList;
+static SortedListStore list_object;
+static WlrForeignHelper foreign_helper;
 
 static List<AppInfo> all_app_infos;
 
@@ -53,15 +52,13 @@ public static int main (string[] args) {
         all_app_infos = AppInfo.get_all ();
     });
 
-    foreign_helper = new WlrForeignHelper ();
-
 #if USE_GLOBAL_GSCHEMA
     // Use the global compiled gschema in /usr/share/glib-2.0/schemas/*
     self_settings = new Settings ("org.erikreider.waydock");
 #else
     message ("Using local GSchema");
     // Meant for use in development.
-    // Uses the compiled gschema in SwaySettings/data/
+    // Uses the compiled gschema in waydock/data/
     // Should never be used in production!
     string settings_dir = Path.build_path (Path.DIR_SEPARATOR_S,
                                            Environment.get_current_dir (),
@@ -79,7 +76,9 @@ public static int main (string[] args) {
     }
 #endif
 
+    foreign_helper = new WlrForeignHelper ();
     pinnedList = new PinnedList ();
+    list_object = new SortedListStore ();
 
     // Load custom CSS
     Gtk.CssProvider css_provider = new Gtk.CssProvider ();

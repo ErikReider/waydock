@@ -23,16 +23,17 @@ constants = configure_file(
 )
 
 app_sources = [
-  'main.vala',
+  'dock_item.vala',
+  'dock_popover.vala',
+  'dock_list.vala',
   'functions.vala',
+  'icon.vala',
+  'icon_state.vala',
+  'main.vala',
   'pinned_list.vala',
   'sorted_liststore.vala',
   'wlr_foreign_helper.vala',
   'window.vala',
-  'icon.vala',
-  'icon_state.vala',
-  'icon_padding.vala',
-  'dock_popover.vala',
   constants,
 ]
 
