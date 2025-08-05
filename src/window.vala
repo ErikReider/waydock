@@ -17,6 +17,8 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         }
     }
 
+    private Graphene.Rect dock_bounds = Graphene.Rect.zero ();
+
     // TODO: Parse ~/.config/monitors.xml for primary output
     public Window (Gtk.Application app, Gdk.Monitor monitor) {
         Object (
@@ -130,6 +132,31 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         // TODO: Update icon dot positions
         // TODO: Resize all the icons to fit the width/height (shrink)
         list.refresh_items ();
+    }
+
+    public override void size_allocate (int width, int height, int baseline) {
+        base.size_allocate (width, height, baseline);
+
+        // Set the input region to only be the size of the actual dock
+        Graphene.Rect bounds;
+        if (list.compute_bounds (this, out bounds)
+            && !bounds.equal (this.dock_bounds)) {
+            this.dock_bounds = bounds;
+
+            unowned Gdk.Surface ? surface = get_surface ();
+            if (surface == null) {
+                return;
+            }
+
+            Cairo.RectangleInt rect = Cairo.RectangleInt () {
+                x = (int) dock_bounds.get_x (),
+                y = (int) dock_bounds.get_y (),
+                width = (int) dock_bounds.get_width (),
+                height = (int) dock_bounds.get_height (),
+            };
+            Cairo.Region region = new Cairo.Region.rectangle (rect);
+            surface.set_input_region (region);
+        }
     }
 
     public direction icon_is_adjacent (IconState reference, IconState sibling) {
