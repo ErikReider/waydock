@@ -143,10 +143,6 @@ public class SortedListStore : Object {
     }
 
     private void toplevel_focused (Toplevel toplevel) {
-        if (!toplevel.done) {
-            return;
-        }
-
         unowned IconState ? state = toplevel.icon_state;
         if (state == null) {
             for (uint i = 0; i < get_n_items (); i++) {
@@ -156,6 +152,13 @@ public class SortedListStore : Object {
                     break;
                 }
             }
+        }
+        return_if_fail (state != null);
+
+        state.focused = toplevel.activated;
+
+        if (!toplevel.done) {
+            return;
         }
 
         state.move_to_front (toplevel);

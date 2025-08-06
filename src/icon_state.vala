@@ -2,6 +2,7 @@ public class IconState : Object {
     public string ? app_id;
     public bool pinned;
     public bool minimized = false;
+    public bool focused { get; set; default = false; }
 
     public List<unowned Toplevel> toplevels;
 

@@ -52,6 +52,9 @@ window {
   padding: $margin / 2;
   transition: padding $transiton_delay ease;
 
+  &.focused {
+  }
+
   & > .icon-image {
     transition: -gtk-icon-filter $transiton_delay ease;
   }

@@ -42,6 +42,14 @@ public class Icon : Gtk.Box {
         this.state = state;
         this.app_name = state.app_id;
 
+        state.notify["focused"].connect (() => {
+            if (state.focused) {
+                add_css_class ("focused");
+            } else {
+                remove_css_class ("focused");
+            }
+        });
+
         if (state.minimized) {
             add_css_class ("minimized");
         }
