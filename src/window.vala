@@ -37,38 +37,6 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         set_halign (Gtk.Align.FILL);
         set_valign (Gtk.Align.FILL);
 
-        var factory = new Gtk.SignalListItemFactory ();
-        factory.setup.connect ((factory, object) => {
-            Gtk.ListItem item = (Gtk.ListItem) object;
-            item.set_child (new DockItem (this));
-        });
-        factory.bind.connect ((factory, object) => {
-            Gtk.ListItem item = (Gtk.ListItem) object;
-            unowned DockItem icon = (DockItem) item.get_child ();
-            unowned IconState id = (IconState) item.get_item ();
-            icon.init (id);
-        });
-        factory.unbind.connect ((factory, object) => {
-            Gtk.ListItem item = (Gtk.ListItem) object;
-            unowned DockItem icon = (DockItem) item.get_child ();
-            icon.disconnect_from_signals ();
-        });
-
-        var header_factory = new Gtk.SignalListItemFactory ();
-        header_factory.setup.connect ((factory, object) => {
-            Gtk.ListHeader item = (Gtk.ListHeader) object;
-            item.set_child (new Gtk.Separator (Gtk.Orientation.VERTICAL));
-        });
-        header_factory.bind.connect ((factory, object) => {
-            Gtk.ListHeader item = (Gtk.ListHeader) object;
-            if (item.start == 0) {
-                item.get_child ().set_visible (false);
-            }
-        });
-        header_factory.unbind.connect ((factory, object) => {
-            Gtk.ListHeader item = (Gtk.ListHeader) object;
-            item.get_child ().set_visible (true);
-        });
 
         list = new DockList (this);
         set_child (list);
