@@ -1,7 +1,13 @@
-public enum direction {
+public enum Direction {
     START = 0,
     END = 1,
     NONE = 2;
+}
+public enum Position {
+    TOP = 0,
+    LEFT = 1,
+    RIGHT = 2,
+    BOTTOM = 3;
 }
 
 static Settings self_settings;

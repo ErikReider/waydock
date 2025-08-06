@@ -64,8 +64,8 @@ class PinnedList {
 
     public bool dnd_drop (IconState target_state,
                           IconState drop_state,
-                          direction dir) {
-        if (dir == direction.NONE) {
+                          Direction dir) {
+        if (dir == Direction.NONE) {
             return false;
         }
 
@@ -79,7 +79,7 @@ class PinnedList {
         // Only get the next node on right due to always calling `insert_before`.
         // Not needed for the left direction
         bool insert_last = false;
-        if (dir == direction.END) {
+        if (dir == Direction.END) {
             if (node == pinned.last ()) {
                 insert_last = true;
             } else {

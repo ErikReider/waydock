@@ -138,22 +138,22 @@ public class Icon : Gtk.Box {
         switch (window.orientation) {
         case Gtk.Orientation.HORIZONTAL:
             switch (window.orientation_direction) {
-            case direction.START:
+            case Direction.START:
                 popover.set_position (Gtk.PositionType.BOTTOM);
                 break;
-            case direction.END:
-            case direction.NONE:
+            case Direction.END:
+            case Direction.NONE:
                 popover.set_position (Gtk.PositionType.TOP);
                 break;
             }
             break;
         case Gtk.Orientation.VERTICAL:
             switch (window.orientation_direction) {
-            case direction.START:
-            case direction.NONE:
+            case Direction.START:
+            case Direction.NONE:
                 popover.set_position (Gtk.PositionType.RIGHT);
                 break;
-            case direction.END:
+            case Direction.END:
                 popover.set_position (Gtk.PositionType.LEFT);
                 break;
             }
@@ -318,11 +318,11 @@ public class Icon : Gtk.Box {
         // Reposition the running circles depending on the window position to
         // ensure that the buttons always are closest to the monitor edge.
         switch (window.orientation_direction) {
-        case direction.START:
+        case Direction.START:
             reorder_child_after (num_open_box, null);
             break;
-        case direction.NONE:
-        case direction.END:
+        case Direction.NONE:
+        case Direction.END:
             reorder_child_after (num_open_box, image);
             break;
         }

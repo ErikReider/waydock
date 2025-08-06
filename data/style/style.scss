@@ -43,7 +43,7 @@ window {
   }
 
   & > separator {
-    margin: $margin 0;
+    margin: $margin;
     margin-bottom: $margin + $open_box_size;
   }
 }

@@ -8,7 +8,7 @@ public class IconState : Object {
 
     public signal void refresh ();
     public signal void toplevel_added (Toplevel toplevel);
-    public signal bool request_icon_reposition (IconState target_state, direction dir);
+    public signal bool request_icon_reposition (IconState target_state, Direction dir);
 
     public IconState (string ? app_id, bool pinned) {
         this.app_id = app_id;
@@ -43,8 +43,8 @@ public class IconState : Object {
 
     public static bool request_icon_reposition_callback (IconState drag_state,
                                                          IconState target_state,
-                                                         direction dir) {
-        if (dir == direction.NONE) {
+                                                         Direction dir) {
+        if (dir == Direction.NONE) {
             return false;
         }
         if (drag_state.pinned || drag_state.minimized
@@ -69,7 +69,7 @@ public class IconState : Object {
             debug ("Could not find target_state in List Store");
             return false;
         }
-        if (dir == direction.END) {
+        if (dir == Direction.END) {
             insert_index = (insert_index + 1).clamp (0, list_object.get_n_items ());
         }
 

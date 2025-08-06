@@ -1,6 +1,6 @@
 public class DockItem : Gtk.Widget {
     const int TRANSITION_DURATION = 250;
-    direction drag_direction = direction.NONE;
+    Direction drag_direction = Direction.NONE;
 
     unowned Window window;
     Icon icon;
@@ -93,7 +93,7 @@ public class DockItem : Gtk.Widget {
         icon.disconnect_from_signals ();
     }
 
-    private void set_drag_direction (direction dir) {
+    private void set_drag_direction (Direction dir) {
         if (drag_direction == dir) {
             return;
         }
@@ -103,15 +103,15 @@ public class DockItem : Gtk.Widget {
         end_animation.pause ();
 
         switch (dir) {
-            case direction.START:
+            case Direction.START:
                 start_animation.value_to = 1.0;
                 end_animation.value_to = 0.0;
                 break;
-            case direction.END:
+            case Direction.END:
                 start_animation.value_to = 0.0;
                 end_animation.value_to = 1.0;
                 break;
-            case direction.NONE:
+            case Direction.NONE:
                 start_animation.value_to = 0.0;
                 end_animation.value_to = 0.0;
                 break;
@@ -161,7 +161,7 @@ public class DockItem : Gtk.Widget {
                                                          Gdk.DragAction.MOVE);
         drop_target.set_preload (true);
         add_controller (drop_target);
-        drop_target.leave.connect (() => set_drag_direction (direction.NONE));
+        drop_target.leave.connect (() => set_drag_direction (Direction.NONE));
         drop_target.enter.connect (calculate_dnd_direction);
         drop_target.motion.connect (calculate_dnd_direction);
         drop_target.drop.connect ((value, x, y) => {
@@ -173,13 +173,13 @@ public class DockItem : Gtk.Widget {
                 return false;
             }
 
-            direction dir;
+            Direction dir;
             if (window.orientation == Gtk.Orientation.HORIZONTAL) {
                 int half_width = get_width () / 2;
-                dir = x > half_width ? direction.END : direction.START;
+                dir = x > half_width ? Direction.END : Direction.START;
             } else {
                 int half_height = get_height () / 2;
-                dir = y > half_height ? direction.END : direction.START;
+                dir = y > half_height ? Direction.END : Direction.START;
             }
             bool result = false;
             if (drop_state.pinned || icon.state.pinned) {
@@ -203,25 +203,25 @@ public class DockItem : Gtk.Widget {
         }
         IconState drag_state = (IconState) value.get_object ();
 
-        direction adjacent = window.icon_is_adjacent (icon.state, drag_state);
+        Direction adjacent = window.icon_is_adjacent (icon.state, drag_state);
 
-        direction dir;
+        Direction dir;
         if (window.orientation == Gtk.Orientation.HORIZONTAL) {
             int half_width = get_width () / 2;
-            dir = x > half_width ? direction.END : direction.START;
+            dir = x > half_width ? Direction.END : Direction.START;
         } else {
             int half_height = get_height () / 2;
-            dir = y > half_height ? direction.END : direction.START;
+            dir = y > half_height ? Direction.END : Direction.START;
         }
 
         // Ignore setting padding offset when it's the neighbouring icon
-        bool is_adjacent = adjacent != direction.NONE && dir == adjacent;
-        if (dir == direction.END && !is_adjacent) {
-            set_drag_direction (direction.END);
-        } else if (dir == direction.START && !is_adjacent) {
-            set_drag_direction (direction.START);
+        bool is_adjacent = adjacent != Direction.NONE && dir == adjacent;
+        if (dir == Direction.END && !is_adjacent) {
+            set_drag_direction (Direction.END);
+        } else if (dir == Direction.START && !is_adjacent) {
+            set_drag_direction (Direction.START);
         } else {
-            set_drag_direction (direction.NONE);
+            set_drag_direction (Direction.NONE);
         }
         return Gdk.DragAction.MOVE;
     }

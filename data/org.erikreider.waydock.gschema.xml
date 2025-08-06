@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="waydock">
+	<enum id="org.erikreider.waydock.position">
+		<value nick="top" value="0"/>
+		<value nick="left" value="1"/>
+		<value nick="right" value="2"/>
+		<value nick="bottom" value="3"/>
+	</enum>
+
 	<schema id="org.erikreider.waydock" path="/org/erikreider/waydock/">
 		<key name="pinned" type="as">
 			<default>[]</default>
 			<description>A list of pinned app_ids</description>
+		</key>
+		<key name="position" enum="org.erikreider.waydock.position">
+			<default>"bottom"</default>
+			<description>The position of the dock</description>
 		</key>
 	</schema>
 </schemalist>
