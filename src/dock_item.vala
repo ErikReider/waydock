@@ -5,10 +5,39 @@ public class DockItem : Gtk.Widget {
     unowned Window window;
     Icon icon;
 
-    private double start_animation_progress = 0.0;
-    private Adw.TimedAnimation ? start_animation;
-    private double end_animation_progress = 0.0;
-    private Adw.TimedAnimation ? end_animation;
+    private double _start_animation_progress = 0.0;
+    public double start_animation_progress {
+        get {
+            return _start_animation_progress;
+        }
+        set {
+            _start_animation_progress = value;
+            queue_resize ();
+        }
+    }
+    private Adw.TimedAnimation start_animation;
+
+    private double _end_animation_progress = 0.0;
+    public double end_animation_progress {
+        get {
+            return _end_animation_progress;
+        }
+        set {
+            _end_animation_progress = value;
+            queue_resize ();
+        }
+    }
+    private Adw.TimedAnimation end_animation;
+
+    private Gtk.DragSource drag_source;
+    private Gtk.DropTarget drop_target;
+
+    construct {
+        Adw.PropertyAnimationTarget start_target = new Adw.PropertyAnimationTarget (this, "start-animation-progress");
+        start_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, start_target);
+        Adw.PropertyAnimationTarget end_target = new Adw.PropertyAnimationTarget (this, "end-animation-progress");
+        end_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, end_target);
+    }
 
     public DockItem (Window window) {
         Object(css_name: "dockitem");
@@ -16,12 +45,13 @@ public class DockItem : Gtk.Widget {
         this.window = window;
         this.icon = new Icon (window);
 
-        Adw.CallbackAnimationTarget start_target = new Adw.CallbackAnimationTarget (start_animation_value_cb);
-        start_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, start_target);
-        Adw.CallbackAnimationTarget end_target = new Adw.CallbackAnimationTarget (end_animation_value_cb);
-        end_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, end_target);
-
         icon.set_parent (this);
+    }
+
+    public override void dispose () {
+        icon.unparent ();
+
+        base.dispose ();
     }
 
     protected override Gtk.SizeRequestMode get_request_mode () {
@@ -70,16 +100,6 @@ public class DockItem : Gtk.Widget {
         icon.allocate (child_req.width, child_req.height, -1, transform);
     }
 
-    void start_animation_value_cb (double progress) {
-        start_animation_progress = progress;
-        queue_resize ();
-    }
-
-    void end_animation_value_cb (double progress) {
-        end_animation_progress = progress;
-        queue_resize ();
-    }
-
     public inline void init (IconState state) {
         icon.init (state);
         init_dnd ();
@@ -87,10 +107,6 @@ public class DockItem : Gtk.Widget {
 
     public inline void refresh () {
         icon.refresh ();
-    }
-
-    public inline void disconnect_from_signals () {
-        icon.disconnect_from_signals ();
     }
 
     private void set_drag_direction (Direction dir) {
@@ -129,7 +145,7 @@ public class DockItem : Gtk.Widget {
         }
 
         // Drag Source
-        Gtk.DragSource drag_source = new Gtk.DragSource ();
+        drag_source = new Gtk.DragSource ();
         drag_source.set_actions (Gdk.DragAction.MOVE);
         add_controller (drag_source);
         drag_source.prepare.connect ((x, y) => {
@@ -156,8 +172,8 @@ public class DockItem : Gtk.Widget {
             return true;
         });
 
-        // Drag Target
-        Gtk.DropTarget drop_target = new Gtk.DropTarget (typeof (IconState),
+        // Drop Target
+        drop_target = new Gtk.DropTarget (typeof (IconState),
                                                          Gdk.DragAction.MOVE);
         drop_target.set_preload (true);
         add_controller (drop_target);

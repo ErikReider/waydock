@@ -42,14 +42,6 @@ public class Icon : Gtk.Box {
         this.state = state;
         this.app_name = state.app_id;
 
-        state.notify["focused"].connect (() => {
-            if (state.focused) {
-                add_css_class ("focused");
-            } else {
-                remove_css_class ("focused");
-            }
-        });
-
         if (state.minimized) {
             add_css_class ("minimized");
         }
@@ -89,11 +81,21 @@ public class Icon : Gtk.Box {
     public void listen_to_signals () {
         state.refresh.connect (refresh);
         state.toplevel_added.connect (toplevel_added);
+        state.notify["focused"].connect (focused_changed);
     }
 
     public void disconnect_from_signals () {
         state.refresh.disconnect (refresh);
         state.toplevel_added.disconnect (toplevel_added);
+        state.notify["focused"].disconnect (focused_changed);
+    }
+
+    private void focused_changed () {
+        if (state.focused) {
+            add_css_class ("focused");
+        } else {
+            remove_css_class ("focused");
+        }
     }
 
     private void click_listener (int n_press, double x, double y) {

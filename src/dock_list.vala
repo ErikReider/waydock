@@ -11,8 +11,8 @@ private struct WidgetAlloc {
 public class DockList : Gtk.Widget, Gtk.Orientable {
     public Gtk.Orientation orientation { get; set; default = Gtk.Orientation.HORIZONTAL; }
 
-    private List<DockItem> items = new List<DockItem> ();
-    private List<Gtk.Separator> separators = new List<Gtk.Separator> ();
+    private List<unowned DockItem> items = new List<unowned DockItem> ();
+    private List<unowned Gtk.Separator> separators = new List<unowned Gtk.Separator> ();
     private int num_children = 0;
 
     private unowned Window window;
@@ -38,15 +38,14 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
 
     private void items_changed (uint position, uint removed, uint added) {
         if (removed > 0) {
-            unowned List<DockItem> link = items.nth (position);
+            unowned List<unowned DockItem> link = items.nth (position);
             int i = 0;
             do {
                 if (link.data != null) {
                     link.data.unparent ();
-                    link.data.destroy ();
                 }
 
-                unowned List<DockItem> next = link.next;
+                unowned List<unowned DockItem> next = link.next;
                 items.remove_link (link);
 
                 link = next;
@@ -72,9 +71,8 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
     private void sections_changed () {
         // Remove all of the previous separators
         while (!separators.is_empty ()) {
-            unowned List<Gtk.Separator> link = separators.nth (0);
+            unowned List<unowned Gtk.Separator> link = separators.nth (0);
             link.data.unparent ();
-            link.data.destroy ();
             separators.delete_link (link);
             num_children--;
         }
@@ -114,9 +112,18 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
     }
 
     public override void dispose () {
-        // TODO: Destroy and animate-out all children
-        foreach (unowned DockItem child in items) {
+        for (unowned Gtk.Widget ? child = get_first_child ();
+             child != null;
+             child = get_first_child ()) {
+            child.unparent ();
         }
+        
+        while (!items.is_empty ()) {
+            items.delete_link (items.first ());
+        }
+        warn_if_fail (items.is_empty ());
+
+        base.dispose ();
     }
 
     protected override Gtk.SizeRequestMode get_request_mode () {
