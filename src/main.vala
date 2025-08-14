@@ -20,6 +20,8 @@ static List<AppInfo> all_app_infos;
 
 static bool activated = false;
 static Gtk.Application app;
+static unowned ListModel monitors;
+static ListStore windows;
 
 static void print_help (string program) {
     print ("Usage:\n");
@@ -103,6 +105,7 @@ public static int main (string[] args) {
     app.activate.connect (() => {
         if (activated) return;
         activated = true;
+        app.hold ();
         init ();
         foreign_helper.start ();
     });
@@ -111,35 +114,43 @@ public static int main (string[] args) {
 }
 
 private static void init () {
+    windows = new ListStore (typeof (Window));
+
     Gdk.Display ? display = Gdk.Display.get_default ();
-    if (display == null) return;
+    assert_nonnull (display);
 
-    unowned ListModel monitors = display.get_monitors ();
-    monitors.items_changed.connect (() => {
-        init_windows (monitors);
-    });
+    monitors = display.get_monitors ();
+    monitors.items_changed.connect (monitors_changed);
 
-    init_windows (monitors);
+    monitors_changed (0, 0, monitors.get_n_items ());
 }
 
-private static void close_all_windows () {
-    foreach (var window in app.get_windows ()) {
+public static void remove_window (Window window) {
+    for (uint i = 0; i < windows.get_n_items (); i++) {
+        Window w = (Window) windows.get_item (i);
+        if (w != window) {
+            continue;
+        }
         window.close ();
+        app.remove_window (window);
+        windows.remove (i);
+        break;
     }
 }
 
-private static void add_window (Gdk.Monitor monitor) {
-    Window win = new Window (app, monitor);
-    win.present ();
-}
+private static void monitors_changed (uint position, uint removed, uint added) {
+    for (uint i = 0; i < removed; i++) {
+        Window window = (Window) windows.get_item (position + i);
+        window.close ();
+        app.remove_window (window);
+        windows.remove (position + i);
+    }
 
-private static void init_windows (ListModel monitors) {
-    close_all_windows ();
+    for (uint i = 0; i < added; i++) {
+        Gdk.Monitor monitor = (Gdk.Monitor) monitors.get_item (position + i);
 
-    for (int i = 0; i < monitors.get_n_items (); i++) {
-        Object ? obj = monitors.get_item (i);
-        if (obj == null || !(obj is Gdk.Monitor)) continue;
-        Gdk.Monitor monitor = (Gdk.Monitor) obj;
-        add_window (monitor);
+        Window win = new Window (app, monitor);
+        windows.insert (position + i, win);
+        win.present ();
     }
 }
