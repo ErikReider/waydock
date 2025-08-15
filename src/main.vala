@@ -57,6 +57,7 @@ public static int main (string[] args) {
     all_app_infos = AppInfo.get_all ();
     AppInfoMonitor app_info_monitor = AppInfoMonitor.get ();
     app_info_monitor.changed.connect (() => {
+        // TODO: Refresh all Toplevels and their IconStates
         all_app_infos = AppInfo.get_all ();
     });
 

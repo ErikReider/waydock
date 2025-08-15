@@ -172,11 +172,14 @@ private static DesktopAppInfo ? try_app_info_search (string app_id, string test_
             }
 
             string * entry = scores[i];
-            DesktopAppInfo app_info = new DesktopAppInfo (entry);
+            DesktopAppInfo ? app_info = new DesktopAppInfo (entry);
+            if (app_info == null) {
+                continue;
+            }
 
-            if (first_choice == null
-                && (app_info.get_startup_wm_class ()?.down () == app_id.down ()
-                || app_info.get_startup_wm_class ()?.down () == test_id.down ())) {
+            string ? wm_class = app_info.get_startup_wm_class ();
+            if (first_choice == null && wm_class != null
+                && (wm_class == app_id || wm_class == test_id)) {
                 first_choice = app_info;
                 continue;
             }
@@ -198,8 +201,8 @@ private static DesktopAppInfo ? try_app_info_search (string app_id, string test_
             }
         }
 
-        var app_info = first_choice ?? second_choice;
         // Checks if the .desktop file actually exists or not
+        unowned DesktopAppInfo ? app_info = first_choice ?? second_choice;
         if (app_info is DesktopAppInfo) {
             strfreev (scores);
             return app_info;
