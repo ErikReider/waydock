@@ -1,13 +1,14 @@
 public class Icon : Gtk.Box {
     public unowned IconState ? state { get; private set; default = null; }
-    public DesktopAppInfo ? app_info;
-    private KeyFile ? keyfile;
 
     private string app_name;
 
     Gtk.GestureClick gesture_click;
 
-    private Gtk.Image image { get; private set; }
+    private Gtk.Overlay overlay;
+    private Gtk.Image image;
+    private Gtk.ProgressBar progress_bar;
+    private Gtk.Label count_badge;
     private Gtk.Box num_open_box;
 
     private unowned Window window;
@@ -25,11 +26,32 @@ public class Icon : Gtk.Box {
 
         add_css_class ("dock-icon");
 
+        overlay = new Gtk.Overlay ();
+        append (overlay);
+
         image = new Gtk.Image ();
         // TODO: Make configurable
         image.set_pixel_size (48);
         image.add_css_class ("icon-image");
-        append (image);
+        overlay.set_child (image);
+
+        // Unity Launcher API Progressbar
+        progress_bar = new Gtk.ProgressBar ();
+        progress_bar.set_orientation (Gtk.Orientation.HORIZONTAL);
+        progress_bar.set_can_target (false);
+        progress_bar.set_valign (Gtk.Align.END);
+        progress_bar.add_css_class ("progress-bar");
+        overlay.add_overlay (progress_bar);
+
+        // Unity Launcher API Count-Badge
+        count_badge = new Gtk.Label ("0");
+        count_badge.set_can_target (false);
+        count_badge.set_valign (Gtk.Align.START);
+        count_badge.set_halign (Gtk.Align.END);
+        count_badge.set_justify (Gtk.Justification.CENTER);
+        count_badge.set_single_line_mode (true);
+        count_badge.add_css_class ("count-badge");
+        overlay.add_overlay (count_badge);
 
         num_open_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 4);
         num_open_box.set_halign (Gtk.Align.CENTER);
@@ -46,25 +68,12 @@ public class Icon : Gtk.Box {
             add_css_class ("minimized");
         }
 
-        // TODO: Check if other icon has same app_info
-        // (ex: gtk4-demo and gtk4-demo fishbowl demo share the same desktop file)
-        app_info = get_app_info (state.app_id);
-        if (app_info != null) {
-            keyfile = new KeyFile ();
-            try {
-                keyfile.load_from_file (app_info.get_filename (), KeyFileFlags.NONE);
-            } catch (Error e) {
-                warning ("Could not load KeyFile for: %s", state.app_id);
-                keyfile = null;
-            }
-        }
-
         gesture_click = new Gtk.GestureClick ();
         gesture_click.set_button (0);
         gesture_click.released.connect (click_listener);
         add_controller (gesture_click);
 
-        set_image_icon_from_app_info (app_info, state.app_id, image);
+        set_image_icon_from_app_info (state.app_info, state.app_id, image);
 
         listen_to_signals ();
 
@@ -72,7 +81,7 @@ public class Icon : Gtk.Box {
     }
 
     public inline Gdk.Paintable get_paintable () {
-        return get_paintable_from_app_info (app_info,
+        return get_paintable_from_app_info (state.app_info,
                                             state.app_id,
                                             image.pixel_size,
                                             get_scale_factor ());
@@ -169,7 +178,7 @@ public class Icon : Gtk.Box {
         // Check if only there's only 1 item
         uint length = state.toplevels.length ();
         if (length == 0) {
-            launch_application (state.app_id, app_info, keyfile, null);
+            launch_application (state.app_id, state.app_info, state.keyfile, null);
         } else if (length == 1) {
             WlrForeignHelper.activate_toplevel (state.toplevels.nth_data (0));
         } else {
@@ -180,7 +189,7 @@ public class Icon : Gtk.Box {
     }
 
     private void middle_click () {
-        launch_application (state.app_id, app_info, keyfile, null);
+        launch_application (state.app_id, state.app_info, state.keyfile, null);
     }
 
     private void right_click () {
@@ -190,16 +199,16 @@ public class Icon : Gtk.Box {
         // App Actions
         Menu app_section = new Menu ();
         SimpleActionGroup app_actions = new SimpleActionGroup ();
-        foreach (var action in app_info.list_actions ()) {
+        foreach (var action in state.app_info?.list_actions ()) {
             has_actions = true;
 
             MenuItem item = new MenuItem (
-                app_info.get_action_name (action), "menu_toplevel.%s".printf (action));
+                state.app_info.get_action_name (action), "menu_toplevel.%s".printf (action));
             app_section.append_item (item);
 
             SimpleAction simple_action = new SimpleAction (action, null);
             simple_action.activate.connect (() => {
-                launch_application (state.app_id, app_info, keyfile, action);
+                launch_application (state.app_id, state.app_info, state.keyfile, action);
             });
             app_actions.add_action (simple_action);
         }
@@ -212,7 +221,7 @@ public class Icon : Gtk.Box {
             main_section.append ("New Instance", "menu.new_instance");
             SimpleAction simple_action = new SimpleAction ("new_instance", null);
             simple_action.activate.connect (() => {
-                launch_application (state.app_id, app_info, keyfile, null);
+                launch_application (state.app_id, state.app_info, state.keyfile, null);
             });
             actions.add_action (simple_action);
         }
@@ -223,7 +232,7 @@ public class Icon : Gtk.Box {
                 pinnedList.remove_pinned (state.app_id);
             });
             actions.add_action (simple_action);
-        } else if (app_info != null) {
+        } else if (state.app_info != null) {
             main_section.append ("Pin to Dock", "menu.pin");
             SimpleAction simple_action = new SimpleAction ("pin", null);
             simple_action.activate.connect (() => {
@@ -261,8 +270,8 @@ public class Icon : Gtk.Box {
     }
 
     private void refresh_name () {
-        if (app_info != null) {
-            app_name = app_info.get_display_name ();
+        if (state.app_info != null) {
+            app_name = state.app_info.get_display_name ();
         } else {
             unowned var link = state.toplevels.first ();
             if (link != null && link.data != null && link.data.title != null) {
@@ -312,6 +321,18 @@ public class Icon : Gtk.Box {
     public void refresh () {
         set_orientation (window.opposite_orientation);
 
+        if (state.launcher_entry != null) {
+            unowned LauncherEntry entry = state.launcher_entry;
+            progress_bar.set_visible (entry.progress_visible);
+            count_badge.set_visible (entry.count_visible);
+
+            progress_bar.set_fraction (entry.progress.clamp (0.0, 1.0));
+            count_badge.set_text (entry.count.to_string ("%'d"));
+        } else {
+            progress_bar.set_visible (false);
+            count_badge.set_visible (false);
+        }
+
         refresh_name ();
         set_running_circles ();
         // TODO: Popover tooltips instead to always make them appear above the dock
@@ -325,7 +346,7 @@ public class Icon : Gtk.Box {
             break;
         case Direction.NONE:
         case Direction.END:
-            reorder_child_after (num_open_box, image);
+            reorder_child_after (num_open_box, overlay);
             break;
         }
     }

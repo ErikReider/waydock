@@ -37,7 +37,7 @@ class DockPopover : Gtk.Popover {
 
             var image = new Gtk.Image ();
             image.add_css_class ("popover-image");
-            set_image_icon_from_app_info (icon.app_info, toplevel.app_id, image);
+            set_image_icon_from_app_info (icon.state.app_info, toplevel.app_id, image);
             box.append (image);
 
             var label = new Gtk.Label (toplevel.title);

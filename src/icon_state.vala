@@ -6,6 +6,11 @@ public class IconState : Object {
 
     public List<unowned Toplevel> toplevels;
 
+    public unowned LauncherEntry ? launcher_entry { get; private set; default = null; }
+
+    public DesktopAppInfo ? app_info { get; private set; default = null; }
+    public KeyFile ? keyfile { get; private set; default = null; }
+
     public signal void refresh ();
     public signal void toplevel_added (Toplevel toplevel);
     public signal bool request_icon_reposition (IconState target_state, Direction dir);
@@ -14,6 +19,21 @@ public class IconState : Object {
         this.app_id = app_id;
         this.pinned = pinned;
         this.toplevels = new List<unowned Toplevel> ();
+
+        // TODO: Check if other icon has same app_info
+        // (ex: gtk4-demo and gtk4-demo fishbowl demo share the same desktop file)
+        app_info = get_app_info (app_id);
+        if (app_info != null) {
+            keyfile = new KeyFile ();
+            try {
+                keyfile.load_from_file (app_info.get_filename (), KeyFileFlags.NONE);
+            } catch (Error e) {
+                warning ("Could not load KeyFile for: %s", app_id);
+                keyfile = null;
+            }
+        }
+
+        unity_service.entry_added.connect (unity_entry_added);
     }
 
     public void move_to_front (Toplevel toplevel) {
@@ -77,5 +97,22 @@ public class IconState : Object {
         return true;
     }
 
-}
+    private void unity_entry_added (string app_id, LauncherEntry entry) {
+        if (app_info?.get_id () != app_id) {
+            return;
+        }
 
+        if (this.launcher_entry != null) {
+            this.launcher_entry.changed.disconnect (unity_entry_changed);
+        }
+
+        this.launcher_entry = entry;
+        this.launcher_entry.changed.connect (unity_entry_changed);
+
+        refresh ();
+    }
+
+    private void unity_entry_changed () {
+        refresh ();
+    }
+}

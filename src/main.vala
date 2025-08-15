@@ -15,6 +15,7 @@ static Settings self_settings;
 static PinnedList pinnedList;
 static SortedListStore list_object;
 static WlrForeignHelper foreign_helper;
+static UnityService unity_service;
 
 static List<AppInfo> all_app_infos;
 
@@ -86,6 +87,7 @@ public static int main (string[] args) {
 #endif
 
     foreign_helper = new WlrForeignHelper ();
+    unity_service = new UnityService ();
     pinnedList = new PinnedList ();
     list_object = new SortedListStore ();
 
@@ -108,6 +110,7 @@ public static int main (string[] args) {
         activated = true;
         app.hold ();
         init ();
+        unity_service.start ();
         foreign_helper.start ();
     });
 

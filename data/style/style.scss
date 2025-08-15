@@ -49,25 +49,57 @@ window {
 }
 
 .dock-icon {
-  padding: $margin / 2;
-  transition: padding $transiton_delay ease;
+  padding: $margin / 2 0;
 
   &.focused {
   }
 
-  & > .icon-image {
+  & .icon-image {
+    padding: $margin / 2;
     transition: -gtk-icon-filter $transiton_delay ease;
   }
 
-  &.minimized > .icon-image {
+  &.minimized .icon-image {
     -gtk-icon-filter: brightness(0.8) saturate(0.7);
   }
 
-  &:hover > .icon-image {
+  &:hover .icon-image {
     -gtk-icon-filter: brightness(1.2);
   }
-  &:active > .icon-image {
+  &:active .icon-image {
     -gtk-icon-filter: brightness(0.8);
+  }
+
+  & .count-badge {
+    background-color: var(--accent-red);
+    color: var(--accent-fg-color);
+    min-height: 16px;
+    min-width: 16px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.56);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.56);
+    border: 1px solid var(--border-color);
+  }
+
+  & .progress-bar {
+    border: 1px solid var(--window-fg-color);
+    border-radius: 100px;
+    opacity: 0.8;
+
+    & > trough {
+      min-height: 3px;
+      min-width: 0;
+      border-radius: 0;
+      background-color: transparent;
+
+      & > progress {
+        border-radius: 0;
+        background-color: var(--window-fg-color);
+      }
+    }
   }
 
   & > .num_open_box {
@@ -80,7 +112,8 @@ window {
       min-width: $open_box_size;
       min-height: $open_box_size;
       border-radius: $open_box_size;
-      background-color: #{"alpha(@theme_text_color, 0.8)"};
+      background-color: var(--window-fg-color);
+      opacity: 0.8;
     }
   }
 }
@@ -91,7 +124,7 @@ window {
   }
 
   &:hover {
-    background: #{"alpha(@accent_bg_color, 0.2)"};
+    background: #{"alpha(var(--accent-bg-color), 0.2)"};
   }
 }
 

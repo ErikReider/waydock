@@ -34,6 +34,7 @@ app_sources = [
   'sorted_liststore.vala',
   'wlr_foreign_helper.vala',
   'window.vala',
+  'unity_service.vala',
   constants,
 ]
 
