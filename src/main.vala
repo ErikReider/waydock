@@ -129,19 +129,6 @@ private static void init () {
     monitors_changed (0, 0, monitors.get_n_items ());
 }
 
-public static void remove_window (Window window) {
-    for (uint i = 0; i < windows.get_n_items (); i++) {
-        Window w = (Window) windows.get_item (i);
-        if (w != window) {
-            continue;
-        }
-        window.close ();
-        app.remove_window (window);
-        windows.remove (i);
-        break;
-    }
-}
-
 private static void monitors_changed (uint position, uint removed, uint added) {
     for (uint i = 0; i < removed; i++) {
         Window window = (Window) windows.get_item (position + i);
