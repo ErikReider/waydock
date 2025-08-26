@@ -30,6 +30,7 @@ BuildRequires: pkgconfig(systemd)
 BuildRequires: systemd
 Requires: glib2
 Requires: gtk4-layer-shell
+Requires: libunity
 
 %{?systemd_requires}
 
