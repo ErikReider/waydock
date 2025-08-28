@@ -268,19 +268,23 @@ static Gdk.Paintable ? get_paintable_from_app_info (DesktopAppInfo ? app_info,
         return paintable;
     }
     unowned GLib.Icon ? icon = app_info.get_icon ();
-    if (!(icon is ThemedIcon)) {
+    if (icon is ThemedIcon) {
+        unowned ThemedIcon t_icon = (ThemedIcon) icon;
+        foreach (string name in t_icon.names) {
+            if (!theme.has_icon (name)) {
+                continue;
+            }
+            Gtk.IconPaintable ? icon_paintable = theme.lookup_by_gicon (
+                icon, size, scale_factor, Gtk.TextDirection.NONE, 0);
+            if (icon_paintable != null) {
+                return icon_paintable;
+            }
+        }
+    } else if (icon is FileIcon) {
+        unowned FileIcon f_icon = icon as FileIcon;
+        return new Gtk.IconPaintable.for_file (f_icon.file, size, scale_factor);
+    } else {
         return paintable;
-    }
-    unowned ThemedIcon t_icon = (ThemedIcon) icon;
-    foreach (string name in t_icon.names) {
-        if (!theme.has_icon (name)) {
-            continue;
-        }
-        Gtk.IconPaintable ? icon_paintable = theme.lookup_by_gicon (
-            icon, size, scale_factor, Gtk.TextDirection.NONE, 0);
-        if (icon_paintable != null) {
-            return icon_paintable;
-        }
     }
 
     return paintable;
@@ -302,14 +306,9 @@ static void set_image_icon_from_app_info (DesktopAppInfo ? app_info,
     // Try setting from the desktop app info
     if (app_info != null) {
         unowned GLib.Icon ? icon = app_info.get_icon ();
-        if (icon is ThemedIcon) {
-            unowned ThemedIcon t_icon = (ThemedIcon) icon;
-            foreach (string name in t_icon.names) {
-                if (theme.has_icon (name)) {
-                    image.set_from_gicon (t_icon);
-                    return;
-                }
-            }
+        if (icon != null && theme.has_gicon (icon)) {
+            image.set_from_gicon (icon);
+            return;
         }
     }
 }
