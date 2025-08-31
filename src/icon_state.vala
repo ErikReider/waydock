@@ -20,9 +20,20 @@ public class IconState : Object {
         this.pinned = pinned;
         this.toplevels = new List<unowned Toplevel> ();
 
+        try_set_app_info ();
+
+        unity_service.entry_added.connect (unity_entry_added);
+    }
+
+    private void try_set_app_info () {
+        string[] titles = {};
+        foreach (unowned Toplevel toplevel in toplevels) {
+            titles += toplevel.title;
+        }
+
         // TODO: Check if other icon has same app_info
         // (ex: gtk4-demo and gtk4-demo fishbowl demo share the same desktop file)
-        app_info = get_app_info (app_id);
+        app_info = get_app_info (app_id, titles);
         if (app_info != null) {
             keyfile = new KeyFile ();
             try {
@@ -32,8 +43,6 @@ public class IconState : Object {
                 keyfile = null;
             }
         }
-
-        unity_service.entry_added.connect (unity_entry_added);
     }
 
     public void move_to_front (Toplevel toplevel) {
@@ -43,6 +52,9 @@ public class IconState : Object {
 
     public void add_toplevel (Toplevel toplevel) {
         toplevels.append (toplevel);
+        if (app_info == null) {
+            try_set_app_info ();
+        }
         toplevel_added (toplevel);
     }
 

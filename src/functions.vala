@@ -213,7 +213,7 @@ private static DesktopAppInfo ? try_app_info_search (string app_id, string test_
     return null;
 }
 
-static DesktopAppInfo ? get_app_info (string ? app_id) {
+static DesktopAppInfo ? get_app_info (string ? app_id, string[] titles) {
     if (app_id == null) {
         return null;
     }
@@ -233,6 +233,17 @@ static DesktopAppInfo ? get_app_info (string ? app_id) {
         DesktopAppInfo? info = try_app_info_search (app_id, id);
         if (info is DesktopAppInfo) {
             return info;
+        }
+    }
+
+
+    if (titles.length > 0) {
+        foreach (unowned string title in titles) {
+            var app_info = new DesktopAppInfo ("%s.desktop".printf (title));
+            // Checks if the .desktop file actually exists or not
+            if (app_info is DesktopAppInfo) {
+                return app_info;
+            }
         }
     }
 
