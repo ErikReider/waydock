@@ -73,8 +73,6 @@ public class Icon : Gtk.Box {
         gesture_click.released.connect (click_listener);
         add_controller (gesture_click);
 
-        set_image_icon_from_app_info (state.app_info, state.app_id, image);
-
         listen_to_signals ();
 
         refresh ();
@@ -319,6 +317,8 @@ public class Icon : Gtk.Box {
     }
 
     public void refresh () {
+        set_image_icon_from_app_info (state.app_info, state.app_id, image);
+
         set_orientation (window.opposite_orientation);
 
         if (state.launcher_entry != null) {

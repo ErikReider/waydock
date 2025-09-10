@@ -17,8 +17,6 @@ static SortedListStore list_object;
 static WlrForeignHelper foreign_helper;
 static UnityService unity_service;
 
-static List<AppInfo> all_app_infos;
-
 static bool activated = false;
 static Gtk.Application app;
 static unowned ListModel monitors;
@@ -53,14 +51,6 @@ public static int main (string[] args) {
 
     Gtk.init ();
     Adw.init ();
-
-    // All app infos
-    all_app_infos = AppInfo.get_all ();
-    AppInfoMonitor app_info_monitor = AppInfoMonitor.get ();
-    app_info_monitor.changed.connect (() => {
-        // TODO: Refresh all Toplevels and their IconStates
-        all_app_infos = AppInfo.get_all ();
-    });
 
 #if USE_GLOBAL_GSCHEMA
     // Use the global compiled gschema in /usr/share/glib-2.0/schemas/*
