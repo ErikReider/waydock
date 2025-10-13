@@ -78,7 +78,7 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         }
         warn_if_fail (separators.is_empty ());
 
-        for (uint end = 0;;) {
+        for (uint end = 0; ; ) {
             uint start;
             sorted_list_store.get_section (end, out start, out end);
 
@@ -112,12 +112,12 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
     }
 
     public override void dispose () {
-        for (unowned Gtk.Widget ? child = get_first_child ();
+        for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
              child = get_first_child ()) {
             child.unparent ();
         }
-        
+
         while (!items.is_empty ()) {
             items.delete_link (items.first ());
         }
@@ -127,7 +127,7 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
     }
 
     protected override Gtk.SizeRequestMode get_request_mode () {
-        for (unowned Gtk.Widget ? child = get_first_child ();
+        for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
              child = child.get_next_sibling ()) {
             if (child.get_request_mode () != Gtk.SizeRequestMode.CONSTANT_SIZE) {
@@ -142,7 +142,7 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         hexpand_p = false;
         vexpand_p = false;
 
-        for (unowned Gtk.Widget ? child = get_first_child ();
+        for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
              child = child.get_next_sibling ()) {
             hexpand_p |= child.compute_expand (Gtk.Orientation.HORIZONTAL);
@@ -164,7 +164,7 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         int total_nat = 0;
 
         int i = 0;
-        for (unowned Gtk.Widget ? child = get_first_child ();
+        for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
              child = child.get_next_sibling ()) {
             if (!child.should_layout ()) {
@@ -173,15 +173,15 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
 
             int min, nat;
             switch (window.orientation) {
-            default:
-            case Gtk.Orientation.HORIZONTAL:
-                child.measure (window.orientation, height,
-                               out min, out nat, null, null);
-                break;
-            case Gtk.Orientation.VERTICAL:
-                child.measure (window.orientation, width,
-                               out min, out nat, null, null);
-                break;
+                default :
+                case Gtk.Orientation.HORIZONTAL :
+                    child.measure (window.orientation, height,
+                                   out min, out nat, null, null);
+                    break;
+                case Gtk.Orientation.VERTICAL :
+                    child.measure (window.orientation, width,
+                                   out min, out nat, null, null);
+                    break;
             }
             heights[i] = WidgetMeasurements () {
                 min = min,
@@ -200,11 +200,11 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         bool allocate_nat = false;
         int extra_size = 0;
         if (window.orientation == Gtk.Orientation.VERTICAL
-                && height >= measured_height.nat) {
+            && height >= measured_height.nat) {
             allocate_nat = true;
             extra_size = height - measured_height.nat;
         } else if (window.orientation == Gtk.Orientation.HORIZONTAL
-                && width >= measured_height.nat) {
+                   && width >= measured_height.nat) {
             allocate_nat = true;
             extra_size = width - measured_height.nat;
         } else {
@@ -213,7 +213,7 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
 
         int offset = 0;
         i = 0;
-        for (unowned Gtk.Widget ? child = get_first_child ();
+        for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
              child = child.get_next_sibling ()) {
             WidgetMeasurements computed_measurement = heights[i];
@@ -249,18 +249,18 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         compute_size (width, height, out total_size, out sizes);
 
         switch (window.orientation) {
-        default:
-        case Gtk.Orientation.HORIZONTAL:
-            total_size = int.max (width, total_size);
-            break;
-        case Gtk.Orientation.VERTICAL:
-            total_size = int.max (height, total_size);
-            break;
+            default :
+            case Gtk.Orientation.HORIZONTAL :
+                total_size = int.max (width, total_size);
+                break;
+            case Gtk.Orientation.VERTICAL:
+                total_size = int.max (height, total_size);
+                break;
         }
 
         // Allocate the size and position of each item
         uint index = 0;
-        for (unowned Gtk.Widget ? child = get_first_child ();
+        for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
              child = child.get_next_sibling ()) {
             if (!child.should_layout ()) {
@@ -270,23 +270,23 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
 
             WidgetAlloc child_allocation = sizes[index];
             switch (window.orientation) {
-            default:
-            case Gtk.Orientation.HORIZONTAL:
-                child.allocate (child_allocation.size,
-                                height,
-                                baseline,
-                                new Gsk.Transform ().translate (
-                                    Graphene.Point ().init (child_allocation.offset, 0)
-                                ));
-                break;
-            case Gtk.Orientation.VERTICAL:
-                child.allocate (width,
-                                child_allocation.size,
-                                baseline,
-                                new Gsk.Transform ().translate (
-                                    Graphene.Point ().init (0, child_allocation.offset)
-                                ));
-                break;
+                default :
+                case Gtk.Orientation.HORIZONTAL:
+                    child.allocate (child_allocation.size,
+                                    height,
+                                    baseline,
+                                    new Gsk.Transform ().translate (
+                                        Graphene.Point ().init (child_allocation.offset, 0)
+                    ));
+                    break;
+                case Gtk.Orientation.VERTICAL:
+                    child.allocate (width,
+                                    child_allocation.size,
+                                    baseline,
+                                    new Gsk.Transform ().translate (
+                                        Graphene.Point ().init (0, child_allocation.offset)
+                    ));
+                    break;
             }
 
             index++;
@@ -306,7 +306,7 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
 
         int min = 0, nat = 0;
         int largest_min = 0, largest_nat = 0;
-        for (unowned Gtk.Widget ? child = get_first_child ();
+        for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
              child = child.get_next_sibling ()) {
             if (!child.should_layout ()) {

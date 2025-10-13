@@ -13,15 +13,15 @@ public class SortedListStore : Object {
         this.sorted_list.set_section_sorter (section_sorter);
 
         // Add all pinned
-        foreach (string app_id in pinnedList.pinned) {
+        foreach (string app_id in pinned_list.pinned) {
             IconState state = new IconState (app_id, true);
             state.request_icon_reposition.connect (IconState.request_icon_reposition_callback);
             append (state);
         }
 
-        assert_nonnull (pinnedList);
-        pinnedList.pinned_added.connect (pinned_added);
-        pinnedList.pinned_removed.connect (pinned_removed);
+        assert_nonnull (pinned_list);
+        pinned_list.pinned_added.connect (pinned_added);
+        pinned_list.pinned_removed.connect (pinned_removed);
 
         foreign_helper.toplevel_changed.connect (toplevel_changed);
         foreign_helper.toplevel_focused.connect (toplevel_focused);
@@ -34,11 +34,11 @@ public class SortedListStore : Object {
         sorted_list.get_section (position, out out_start, out out_end);
     }
 
-    public inline Object ? get_item (uint position) {
+    public inline Object ?get_item (uint position) {
         return list_store.get_item (position);
     }
 
-    public inline Object ? get_item_sorted (uint position) {
+    public inline Object ?get_item_sorted (uint position) {
         return sorted_list.get_item (position);
     }
 
@@ -60,7 +60,7 @@ public class SortedListStore : Object {
 
     private bool _find (ListModel model, Object item, out uint position) {
         for (uint i = 0; i < model.get_n_items (); i++) {
-            Object ? object = model.get_item (i);
+            Object ?object = model.get_item (i);
             if (object == item) {
                 position = i;
                 return true;
@@ -89,7 +89,7 @@ public class SortedListStore : Object {
     public void debug_print_list_store () {
         print ("List Store:\n");
         for (uint i = 0; i < get_n_items (); i++) {
-            IconState ? state = (IconState ?) sorted_list.get_item (i);
+            IconState ?state = (IconState ?) sorted_list.get_item (i);
             char prefix = '-';
             if (state.pinned) {
                 prefix = 'P';
@@ -97,7 +97,7 @@ public class SortedListStore : Object {
             if (state.minimized) {
                 prefix = 'M';
             }
-            print ("\t%u: %c %s\n", i, prefix, state?.app_id);
+            print ("\t%u: %c %s\n", i, prefix, state ? .app_id);
         }
         print ("\n");
     }
@@ -108,7 +108,7 @@ public class SortedListStore : Object {
 
     private void pinned_added (string app_id) {
         for (uint i = 0; i < get_n_items (); i++) {
-            IconState ? state = (IconState ?) get_item_sorted (i);
+            IconState ?state = (IconState ?) get_item_sorted (i);
             if (state != null && state.app_id == app_id && !state.minimized) {
                 state.pinned = true;
                 invalidate_sort ();
@@ -124,7 +124,7 @@ public class SortedListStore : Object {
 
     private void pinned_removed (string app_id) {
         for (uint i = 0; i < get_n_items (); i++) {
-            IconState ? state = (IconState ?) get_item (i);
+            IconState ?state = (IconState ?) get_item (i);
             if (state != null && state.app_id == app_id && state.pinned) {
                 state.pinned = false;
                 // No running toplevels
@@ -147,7 +147,7 @@ public class SortedListStore : Object {
             return;
         }
 
-        unowned IconState ? state = toplevel.icon_state;
+        unowned IconState ?state = toplevel.icon_state;
         if (state == null) {
             for (uint i = 0; i < get_n_items (); i++) {
                 IconState iter_state = (IconState) get_item (i);
@@ -241,7 +241,7 @@ public class SortedListStore : Object {
             }
         }
 
-        unowned IconState ? state = toplevel.icon_state;
+        unowned IconState ?state = toplevel.icon_state;
         if (state == null) {
             for (uint i = 0; i < get_n_items (); i++) {
                 IconState iter_state = (IconState) get_item (i);
@@ -269,19 +269,19 @@ public class SortedListStore : Object {
         }
     }
 
-    private int sorter_function (Object ? a, Object ? b) {
+    private int sorter_function (Object ?a, Object ?b) {
         unowned IconState id_a = (IconState) a;
         unowned IconState id_b = (IconState) b;
 
         if (id_a.pinned && id_b.pinned) {
-            int a_pos = list_index (pinnedList.pinned, id_a.app_id, strcmp);
-            int b_pos = list_index (pinnedList.pinned, id_b.app_id, strcmp);
+            int a_pos = list_index (pinned_list.pinned, id_a.app_id, strcmp);
+            int b_pos = list_index (pinned_list.pinned, id_b.app_id, strcmp);
             return a_pos < b_pos ? -1 : 1;
         }
         return section_function (a, b);
     }
 
-    private int section_function (Object ? a, Object ? b) {
+    private int section_function (Object ?a, Object ?b) {
         unowned IconState id_a = (IconState) a;
         unowned IconState id_b = (IconState) b;
 

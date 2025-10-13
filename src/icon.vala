@@ -1,5 +1,5 @@
 public class Icon : Gtk.Box {
-    public unowned IconState ? state { get; private set; default = null; }
+    public unowned IconState ?state { get; private set; default = null; }
 
     private string app_name;
 
@@ -14,12 +14,14 @@ public class Icon : Gtk.Box {
     private unowned Window window;
 
     public int pixel_size {
-        get { return image.pixel_size; }
+        get {
+            return image.pixel_size;
+        }
     }
 
     public Icon (Window window) {
         Object (
-            orientation: window.opposite_orientation,
+            orientation : window.opposite_orientation,
             spacing: 4
         );
         this.window = window;
@@ -116,10 +118,10 @@ public class Icon : Gtk.Box {
             return;
         }
         switch (button) {
-            case Gdk.BUTTON_PRIMARY :
+            case Gdk.BUTTON_PRIMARY:
                 left_click ();
                 break;
-            case Gdk.BUTTON_MIDDLE :
+            case Gdk.BUTTON_MIDDLE:
                 middle_click ();
                 break;
             case Gdk.BUTTON_SECONDARY:
@@ -145,28 +147,28 @@ public class Icon : Gtk.Box {
         popover.set_pointing_to (rect);
 
         switch (window.orientation) {
-        case Gtk.Orientation.HORIZONTAL:
-            switch (window.orientation_direction) {
-            case Direction.START:
-                popover.set_position (Gtk.PositionType.BOTTOM);
+            case Gtk.Orientation.HORIZONTAL:
+                switch (window.orientation_direction) {
+                    case Direction.START:
+                        popover.set_position (Gtk.PositionType.BOTTOM);
+                        break;
+                    case Direction.END:
+                    case Direction.NONE:
+                        popover.set_position (Gtk.PositionType.TOP);
+                        break;
+                }
                 break;
-            case Direction.END:
-            case Direction.NONE:
-                popover.set_position (Gtk.PositionType.TOP);
+            case Gtk.Orientation.VERTICAL:
+                switch (window.orientation_direction) {
+                    case Direction.START:
+                    case Direction.NONE:
+                        popover.set_position (Gtk.PositionType.RIGHT);
+                        break;
+                    case Direction.END:
+                        popover.set_position (Gtk.PositionType.LEFT);
+                        break;
+                }
                 break;
-            }
-            break;
-        case Gtk.Orientation.VERTICAL:
-            switch (window.orientation_direction) {
-            case Direction.START:
-            case Direction.NONE:
-                popover.set_position (Gtk.PositionType.RIGHT);
-                break;
-            case Direction.END:
-                popover.set_position (Gtk.PositionType.LEFT);
-                break;
-            }
-            break;
         }
 
         popover.popup ();
@@ -197,7 +199,7 @@ public class Icon : Gtk.Box {
         // App Actions
         Menu app_section = new Menu ();
         SimpleActionGroup app_actions = new SimpleActionGroup ();
-        foreach (var action in state.app_info?.list_actions ()) {
+        foreach (var action in state.app_info ? .list_actions ()) {
             has_actions = true;
 
             MenuItem item = new MenuItem (
@@ -227,14 +229,14 @@ public class Icon : Gtk.Box {
             main_section.append ("Unpin from Dock", "menu.unpin");
             SimpleAction simple_action = new SimpleAction ("unpin", null);
             simple_action.activate.connect (() => {
-                pinnedList.remove_pinned (state.app_id);
+                pinned_list.remove_pinned (state.app_id);
             });
             actions.add_action (simple_action);
         } else if (state.app_info != null) {
             main_section.append ("Pin to Dock", "menu.pin");
             SimpleAction simple_action = new SimpleAction ("pin", null);
             simple_action.activate.connect (() => {
-                pinnedList.add_pinned (state.app_id);
+                pinned_list.add_pinned (state.app_id);
             });
             actions.add_action (simple_action);
         }
@@ -341,13 +343,13 @@ public class Icon : Gtk.Box {
         // Reposition the running circles depending on the window position to
         // ensure that the buttons always are closest to the monitor edge.
         switch (window.orientation_direction) {
-        case Direction.START:
-            reorder_child_after (num_open_box, null);
-            break;
-        case Direction.NONE:
-        case Direction.END:
-            reorder_child_after (num_open_box, overlay);
-            break;
+            case Direction.START :
+                reorder_child_after (num_open_box, null);
+                break;
+            case Direction.NONE:
+            case Direction.END:
+                reorder_child_after (num_open_box, overlay);
+                break;
         }
     }
 

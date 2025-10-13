@@ -33,14 +33,17 @@ public class DockItem : Gtk.Widget {
     private Gtk.DropTarget drop_target;
 
     construct {
-        Adw.PropertyAnimationTarget start_target = new Adw.PropertyAnimationTarget (this, "start-animation-progress");
-        start_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, start_target);
-        Adw.PropertyAnimationTarget end_target = new Adw.PropertyAnimationTarget (this, "end-animation-progress");
+        Adw.PropertyAnimationTarget start_target
+            = new Adw.PropertyAnimationTarget (this, "start-animation-progress");
+        start_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION,
+                                                  start_target);
+        Adw.PropertyAnimationTarget end_target
+            = new Adw.PropertyAnimationTarget (this, "end-animation-progress");
         end_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, end_target);
     }
 
     public DockItem (Window window) {
-        Object(css_name: "dockitem");
+        Object (css_name: "dockitem");
 
         this.window = window;
         this.icon = new Icon (window);
@@ -68,7 +71,7 @@ public class DockItem : Gtk.Widget {
 
         int child_min, child_nat;
 
-        if (!icon.visible){
+        if (!icon.visible) {
             return;
         }
 
@@ -92,11 +95,11 @@ public class DockItem : Gtk.Widget {
 
         int is_horizontal = (int) (window.orientation == Gtk.Orientation.HORIZONTAL);
         Gsk.Transform transform = new Gsk.Transform ()
-            .translate (
-                Graphene.Point ().init (
-                    (int) (child_req.width * start_animation_progress) * is_horizontal,
-                    (int) (child_req.height * start_animation_progress) * (1 - is_horizontal))
-            );
+             .translate (
+            Graphene.Point ().init (
+                (int) (child_req.width * start_animation_progress) * is_horizontal,
+                (int) (child_req.height * start_animation_progress) * (1 - is_horizontal))
+             );
         icon.allocate (child_req.width, child_req.height, -1, transform);
     }
 
@@ -174,7 +177,7 @@ public class DockItem : Gtk.Widget {
 
         // Drop Target
         drop_target = new Gtk.DropTarget (typeof (IconState),
-                                                         Gdk.DragAction.MOVE);
+                                          Gdk.DragAction.MOVE);
         drop_target.set_preload (true);
         add_controller (drop_target);
         drop_target.leave.connect (() => set_drag_direction (Direction.NONE));
@@ -199,7 +202,7 @@ public class DockItem : Gtk.Widget {
             }
             bool result = false;
             if (drop_state.pinned || icon.state.pinned) {
-                result |= pinnedList.dnd_drop (icon.state, drop_state, dir);
+                result |= pinned_list.dnd_drop (icon.state, drop_state, dir);
             }
             if (!icon.state.pinned) {
                 // Reposition icon (includes pinned -> unpinned dnd)
@@ -212,7 +215,7 @@ public class DockItem : Gtk.Widget {
     private Gdk.DragAction calculate_dnd_direction (Gtk.DropTarget drop_target,
                                                     double x, double y) {
         // Skip self
-        Value ? value = drop_target.get_value ();
+        Value ?value = drop_target.get_value ();
         if (value == null || !value.holds (typeof (IconState))
             || icon.state == value.get_object ()) {
             return 0;

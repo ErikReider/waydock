@@ -12,7 +12,7 @@ public class Toplevel : Object {
     public bool minimized = false;
     public bool maximized = false;
 
-    public unowned IconState ? icon_state = null;
+    public unowned IconState ?icon_state = null;
 
     public unowned Handle handle;
 
@@ -23,7 +23,7 @@ public class WlrForeignHelper : Object {
     private static Wl.RegistryListener registry_listener = Wl.RegistryListener () {
         global = registry_handle_global,
     };
-    private const HandleListener toplevel_listener = {
+    private const HandleListener TOPLEVEL_LISTENER = {
         handle_title,
         handle_app_id,
         handle_output_enter,
@@ -33,12 +33,12 @@ public class WlrForeignHelper : Object {
         handle_closed,
         handle_parent,
     };
-    private const ManagerListener manager_listener = {
+    private const ManagerListener MANAGER_LISTENER = {
         handle_toplevel,
         handle_finished,
     };
 
-    private Manager ? manager;
+    private Manager ?manager;
     private uint64 id_counter = 0;
 
     public static List<Toplevel> toplevels = new List<Toplevel> ();
@@ -92,7 +92,7 @@ public class WlrForeignHelper : Object {
             }
 
             unowned Wl.Display wl_display = get_wl_display ();
-            manager.add_listener (manager_listener, this);
+            manager.add_listener (MANAGER_LISTENER, this);
             if (wl_display.roundtrip () < 0) {
                 return;
             }
@@ -108,7 +108,7 @@ public class WlrForeignHelper : Object {
 
         Toplevel toplevel = new Toplevel ();
         toplevel.handle = handle;
-        handle.add_listener (toplevel_listener, toplevel);
+        handle.add_listener (TOPLEVEL_LISTENER, toplevel);
         if (wl_display.roundtrip () < 0) {
             return;
         }
@@ -123,29 +123,29 @@ public class WlrForeignHelper : Object {
     // Toplevel
     //
 
-    private static void handle_title (void * data, Handle handle,
+    private static void handle_title (void *data, Handle handle,
                                       string title) {
         Toplevel toplevel = (Toplevel) data;
         toplevel.title = title;
     }
 
-    private static void handle_app_id (void * data, Handle handle,
+    private static void handle_app_id (void *data, Handle handle,
                                        string app_id) {
         Toplevel toplevel = (Toplevel) data;
         toplevel.app_id = app_id;
     }
 
-    private static void handle_output_enter (void * data, Handle handle,
+    private static void handle_output_enter (void *data, Handle handle,
                                              Wl.Output output) {
         Toplevel toplevel = (Toplevel) data;
     }
 
-    private static void handle_output_leave (void * data, Handle handle,
+    private static void handle_output_leave (void *data, Handle handle,
                                              Wl.Output output) {
         Toplevel toplevel = (Toplevel) data;
     }
 
-    private static void handle_state (void * data, Handle handle,
+    private static void handle_state (void *data, Handle handle,
                                       Wl.Array states) {
         Toplevel toplevel = (Toplevel) data;
 
@@ -158,7 +158,7 @@ public class WlrForeignHelper : Object {
         toplevel.fullscreen = false;
 
         // Iterate through wl_array (extended the wl_array_for_each macro)
-        uint32 * pos;
+        uint32 *pos;
         for (pos = states.data;
              states.size != 0 &&
              (char *) pos < ((char *) states.data + states.size);
@@ -186,7 +186,7 @@ public class WlrForeignHelper : Object {
         }
     }
 
-    private static void handle_done (void * data, Handle handle) {
+    private static void handle_done (void *data, Handle handle) {
         Toplevel toplevel = (Toplevel) data;
         if (!toplevel.done) {
             toplevel.done = true;
@@ -196,14 +196,14 @@ public class WlrForeignHelper : Object {
         }
     }
 
-    private static void handle_closed (void * data, Handle handle) {
+    private static void handle_closed (void *data, Handle handle) {
         Toplevel toplevel = (Toplevel) data;
         toplevels.remove (toplevel);
         foreign_helper.toplevel_removed (toplevel);
     }
 
-    private static void handle_parent (void * data, Handle handle,
-                                       Handle ? parent) {
+    private static void handle_parent (void *data, Handle handle,
+                                       Handle ?parent) {
         Toplevel toplevel = (Toplevel) data;
         toplevel.parent = null;
         if (parent != null) {

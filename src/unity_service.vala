@@ -40,12 +40,12 @@ public class UnityService : Object {
 
     public void start () {
         connection.signal_subscribe (null, "com.canonical.Unity.LauncherEntry", null, null, null,
-            DBusSignalFlags.NONE, handle_entry_update);
+                                     DBusSignalFlags.NONE, handle_entry_update);
     }
 
     public signal void entry_added (string app_id, LauncherEntry entry);
 
-    private void handle_entry_update (DBusConnection connection, string ? sender_name,
+    private void handle_entry_update (DBusConnection connection, string ?sender_name,
                                       string object_path, string interface_name,
                                       string signal_name, Variant parameters) {
         if (parameters == null || signal_name == null || sender_name == null) {
@@ -60,7 +60,7 @@ public class UnityService : Object {
     private void handle_update (string sender_name, Variant parameters) {
         if (parameters.get_type_string () != "(sa{sv})") {
             critical ("Skipping Launcher parameters of type \"%s\" from sender %s",
-                parameters.get_type_string (), sender_name);
+                      parameters.get_type_string (), sender_name);
             return;
         }
 

@@ -3,6 +3,7 @@ public enum Direction {
     END = 1,
     NONE = 2;
 }
+
 public enum Position {
     TOP = 0,
     LEFT = 1,
@@ -12,7 +13,7 @@ public enum Position {
 
 static Settings self_settings;
 
-static PinnedList pinnedList;
+static PinnedList pinned_list;
 static SortedListStore list_object;
 static WlrForeignHelper foreign_helper;
 static UnityService unity_service;
@@ -64,7 +65,8 @@ public static int main (string[] args) {
                                            Environment.get_current_dir (),
                                            "data");
     try {
-        SettingsSchemaSource sss = new SettingsSchemaSource.from_directory (settings_dir, null, false);
+        SettingsSchemaSource sss = new SettingsSchemaSource.from_directory (settings_dir, null,
+                                                                            false);
         SettingsSchema schema = sss.lookup ("org.erikreider.waydock", false);
         if (schema == null) {
             error ("ID not found.\n");
@@ -78,7 +80,7 @@ public static int main (string[] args) {
 
     foreign_helper = new WlrForeignHelper ();
     unity_service = new UnityService ();
-    pinnedList = new PinnedList ();
+    pinned_list = new PinnedList ();
     list_object = new SortedListStore ();
 
     // Load custom CSS
@@ -91,12 +93,14 @@ public static int main (string[] args) {
         Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
     app = new Gtk.Application ("org.erikreider.waydock",
-                                   ApplicationFlags.DEFAULT_FLAGS
-                                   | ApplicationFlags.ALLOW_REPLACEMENT
-                                   | ApplicationFlags.REPLACE);
+                               ApplicationFlags.DEFAULT_FLAGS
+                               | ApplicationFlags.ALLOW_REPLACEMENT
+                               | ApplicationFlags.REPLACE);
 
     app.activate.connect (() => {
-        if (activated) return;
+        if (activated) {
+            return;
+        }
         activated = true;
         app.hold ();
         init ();
@@ -110,7 +114,7 @@ public static int main (string[] args) {
 private static void init () {
     windows = new ListStore (typeof (Window));
 
-    Gdk.Display ? display = Gdk.Display.get_default ();
+    Gdk.Display ?display = Gdk.Display.get_default ();
     assert_nonnull (display);
 
     monitors = display.get_monitors ();

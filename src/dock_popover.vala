@@ -1,7 +1,7 @@
 class DockPopover : Gtk.Popover {
     unowned Icon icon;
 
-    private const int per_line = 3;
+    private const int PER_LINE = 3;
 
     public DockPopover (Icon icon) {
         this.icon = icon;
@@ -12,7 +12,7 @@ class DockPopover : Gtk.Popover {
         Gtk.FlowBox popover_box = new Gtk.FlowBox ();
         popover_box.set_max_children_per_line (3);
         uint length = icon.state.toplevels.length ();
-        if (length < per_line) {
+        if (length < PER_LINE) {
             popover_box.set_max_children_per_line (length);
         }
         popover_box.set_homogeneous (true);

@@ -1,0 +1,77 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Linting
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  vala-linting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: elementary/actions/vala-lint@master
+      with:
+        dir: src/
+        conf: .vala-lint.conf
+        fail: true
+
+  uncrustify:
+    container: registry.fedoraproject.org/fedora-minimal:latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install uncrustify
+        run: |
+          microdnf -y install --nodocs --setopt=install_weak_deps=0 \
+            @development-tools git \
+            uncrustify
+
+      - name: Check out sources
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          path: waydock
+
+      - name: Run uncrustify
+        run: |
+          cd waydock
+          uncrustify -c ./.uncrustify.cfg -l vala $(find . -name "*.vala" -type f) --check
+
+  rpmlint:
+    container: registry.fedoraproject.org/fedora-minimal:latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install rpmlint
+        run: |
+          microdnf -y install --nodocs --setopt=install_weak_deps=0 \
+            rpmlint rpkg
+
+      - name: Check out sources
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          path: waydock
+
+      - name: Copy spec into root dir
+        run: |
+          cd waydock
+          cp ./build-scripts/*.rpkg.spec ./
+
+      - name: Generate spec
+        run: |
+          cd waydock
+          mkdir -p specs
+          rpkg spec --source --outdir specs
+
+      - name: Start linting
+        run: |
+          cd waydock
+          rpmlint ./specs/*.rpkg.spec

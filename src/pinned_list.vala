@@ -6,7 +6,7 @@ class PinnedList {
     public signal void pinned_moved (string app_id);
 
     public PinnedList () {
-        pinned = new List<string>();
+        pinned = new List<string> ();
 
         if (!self_settings.settings_schema.has_key ("pinned")) {
             return;
@@ -113,4 +113,3 @@ class PinnedList {
         return true;
     }
 }
-

@@ -1,21 +1,21 @@
 public class IconState : Object {
-    public string ? app_id;
+    public string ?app_id;
     public bool pinned;
     public bool minimized = false;
     public bool focused { get; set; default = false; }
 
     public List<unowned Toplevel> toplevels;
 
-    public unowned LauncherEntry ? launcher_entry { get; private set; default = null; }
+    public unowned LauncherEntry ?launcher_entry { get; private set; default = null; }
 
-    public DesktopAppInfo ? app_info { get; private set; default = null; }
-    public KeyFile ? keyfile { get; private set; default = null; }
+    public DesktopAppInfo ?app_info { get; private set; default = null; }
+    public KeyFile ?keyfile { get; private set; default = null; }
 
     public signal void refresh ();
     public signal void toplevel_added (Toplevel toplevel);
     public signal bool request_icon_reposition (IconState target_state, Direction dir);
 
-    public IconState (string ? app_id, bool pinned) {
+    public IconState (string ?app_id, bool pinned) {
         this.app_id = app_id;
         this.pinned = pinned;
         this.toplevels = new List<unowned Toplevel> ();
@@ -65,7 +65,7 @@ public class IconState : Object {
         return toplevels.is_empty ();
     }
 
-    public unowned Toplevel ? get_first_toplevel () {
+    public unowned Toplevel ?get_first_toplevel () {
         unowned List<unowned Toplevel> first_link = toplevels.first ();
         if (first_link == null) {
             return null;
@@ -110,7 +110,7 @@ public class IconState : Object {
     }
 
     private void unity_entry_added (string app_id, LauncherEntry entry) {
-        if (app_info?.get_id () != app_id) {
+        if (app_info ? .get_id () != app_id) {
             return;
         }
 

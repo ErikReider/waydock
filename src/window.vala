@@ -8,11 +8,11 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
     public Gtk.Orientation opposite_orientation {
         get {
             switch (orientation) {
-            case Gtk.Orientation.VERTICAL:
-                return Gtk.Orientation.HORIZONTAL;
-            default:
-            case Gtk.Orientation.HORIZONTAL:
-                return Gtk.Orientation.VERTICAL;
+                case Gtk.Orientation.VERTICAL:
+                    return Gtk.Orientation.HORIZONTAL;
+                default:
+                case Gtk.Orientation.HORIZONTAL:
+                    return Gtk.Orientation.VERTICAL;
             }
         }
     }
@@ -48,36 +48,36 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
 
     private void settings_changed (string name) {
         switch (name) {
-        case "position":
-            set_position ();
-            set_anchor ();
-            break;
-        case "pinned":
-            // TODO:
-            break;
-        default:
-            break;
+            case "position":
+                set_position ();
+                set_anchor ();
+                break;
+            case "pinned":
+                // TODO:
+                break;
+            default:
+                break;
         }
     }
 
     private void set_position () {
         switch ((Position) self_settings.get_enum ("position")) {
-        case Position.TOP:
-            orientation = Gtk.Orientation.HORIZONTAL;
-            orientation_direction = Direction.START;
-            break;
-        case Position.LEFT:
-            orientation = Gtk.Orientation.VERTICAL;
-            orientation_direction = Direction.START;
-            break;
-        case Position.RIGHT:
-            orientation = Gtk.Orientation.VERTICAL;
-            orientation_direction = Direction.END;
-            break;
-        case Position.BOTTOM:
-            orientation = Gtk.Orientation.HORIZONTAL;
-            orientation_direction = Direction.END;
-            break;
+            case Position.TOP:
+                orientation = Gtk.Orientation.HORIZONTAL;
+                orientation_direction = Direction.START;
+                break;
+            case Position.LEFT:
+                orientation = Gtk.Orientation.VERTICAL;
+                orientation_direction = Direction.START;
+                break;
+            case Position.RIGHT:
+                orientation = Gtk.Orientation.VERTICAL;
+                orientation_direction = Direction.END;
+                break;
+            case Position.BOTTOM:
+                orientation = Gtk.Orientation.HORIZONTAL;
+                orientation_direction = Direction.END;
+                break;
         }
     }
 
@@ -92,46 +92,46 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         list.remove_css_class ("end");
 
         switch (orientation) {
-        case Gtk.Orientation.HORIZONTAL:
-            list.add_css_class ("horizontal");
-            switch (orientation_direction) {
-            case Direction.START:
-                list.add_css_class ("start");
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, false);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
+            case Gtk.Orientation.HORIZONTAL:
+                list.add_css_class ("horizontal");
+                switch (orientation_direction) {
+                    case Direction.START:
+                        list.add_css_class ("start");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, false);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
+                        break;
+                    case Direction.END:
+                    case Direction.NONE:
+                        list.add_css_class ("end");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, false);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
+                        break;
+                }
                 break;
-            case Direction.END:
-            case Direction.NONE:
-                list.add_css_class ("end");
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, false);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
+            case Gtk.Orientation.VERTICAL:
+                list.add_css_class ("vertical");
+                switch (orientation_direction) {
+                    case Direction.START:
+                    case Direction.NONE:
+                        list.add_css_class ("start");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, false);
+                        break;
+                    case Direction.END:
+                        list.add_css_class ("end");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, false);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
+                        break;
+                }
                 break;
-            }
-            break;
-        case Gtk.Orientation.VERTICAL:
-            list.add_css_class ("vertical");
-            switch (orientation_direction) {
-            case Direction.START:
-            case Direction.NONE:
-                list.add_css_class ("start");
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, false);
-                break;
-            case Direction.END:
-                list.add_css_class ("end");
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, false);
-                GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
-                break;
-            }
-            break;
         }
 
         // TODO: Resize all the icons to fit the width/height (shrink)
@@ -147,7 +147,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             && !bounds.equal (this.dock_bounds)) {
             this.dock_bounds = bounds;
 
-            unowned Gdk.Surface ? surface = get_surface ();
+            unowned Gdk.Surface ?surface = get_surface ();
             if (surface == null) {
                 return;
             }
@@ -176,13 +176,13 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         }
 
         if (ref_pos - 1 >= 0) {
-            IconState ? state = (IconState ?) list_object.get_item_sorted (ref_pos - 1);
+            IconState ?state = (IconState ?) list_object.get_item_sorted (ref_pos - 1);
             if (state != null && state == sibling) {
                 return Direction.START;
             }
         }
         if (ref_pos + 1 < list_object.get_n_items ()) {
-            IconState ? state = (IconState ?) list_object.get_item_sorted (ref_pos + 1);
+            IconState ?state = (IconState ?) list_object.get_item_sorted (ref_pos + 1);
             if (state != null && state == sibling) {
                 return Direction.END;
             }
