@@ -1,9 +1,10 @@
-public class SortedListStore : Object {
+public class IconStateListStore : Object {
     public Gtk.SortListModel sorted_list { get; private set; }
 
     private ListStore list_store;
 
-    public SortedListStore () {
+    // A sorted ListStore
+    public IconStateListStore () {
         Gtk.Sorter sorter = new Gtk.CustomSorter (sorter_function);
         Gtk.Sorter section_sorter = new Gtk.CustomSorter (section_function);
 
@@ -15,7 +16,6 @@ public class SortedListStore : Object {
         // Add all pinned
         foreach (string app_id in pinned_list.pinned) {
             IconState state = new IconState (app_id, true);
-            state.request_icon_reposition.connect (IconState.request_icon_reposition_callback);
             append (state);
         }
 
@@ -34,23 +34,23 @@ public class SortedListStore : Object {
         sorted_list.get_section (position, out out_start, out out_end);
     }
 
-    public inline Object ?get_item (uint position) {
-        return list_store.get_item (position);
+    public inline IconState ?get_item (uint position) {
+        return (IconState ?) list_store.get_item (position);
     }
 
-    public inline Object ?get_item_sorted (uint position) {
-        return sorted_list.get_item (position);
+    public inline IconState ?get_item_sorted (uint position) {
+        return (IconState ?) sorted_list.get_item (position);
     }
 
     public uint get_n_items () {
         return sorted_list.get_n_items ();
     }
 
-    public void insert (uint position, Object item) {
+    public void insert (uint position, IconState item) {
         list_store.insert (position, item);
     }
 
-    public void append (Object item) {
+    public void append (IconState item) {
         list_store.append (item);
     }
 
@@ -58,9 +58,9 @@ public class SortedListStore : Object {
         list_store.remove (position);
     }
 
-    private bool _find (ListModel model, Object item, out uint position) {
+    private bool _find (ListModel model, IconState item, out uint position) {
         for (uint i = 0; i < model.get_n_items (); i++) {
-            Object ?object = model.get_item (i);
+            IconState ?object = (IconState ?) model.get_item (i);
             if (object == item) {
                 position = i;
                 return true;
@@ -72,12 +72,12 @@ public class SortedListStore : Object {
     }
 
     /// Uses pointer comparison to find the correct item position
-    public bool find_sorted (Object item, out uint position) {
+    public bool find_sorted (IconState item, out uint position) {
         return _find (sorted_list, item, out position);
     }
 
     /// Uses pointer comparison to find the correct item position
-    public bool find (Object item, out uint position) {
+    public bool find (IconState item, out uint position) {
         return _find (list_store, item, out position);
     }
 
@@ -118,7 +118,6 @@ public class SortedListStore : Object {
 
         // Fallback for if a repositioned pinned toplevel isn't running (not in list)
         IconState state = new IconState (app_id, true);
-        state.request_icon_reposition.connect (IconState.request_icon_reposition_callback);
         append (state);
     }
 
@@ -218,7 +217,6 @@ public class SortedListStore : Object {
         IconState state = new IconState (toplevel.app_id, false);
         toplevel.icon_state = state;
         state.add_toplevel (toplevel);
-        state.request_icon_reposition.connect (IconState.request_icon_reposition_callback);
         append (state);
     }
 
@@ -269,7 +267,7 @@ public class SortedListStore : Object {
         }
     }
 
-    private int sorter_function (Object ?a, Object ?b) {
+    private int sorter_function (IconState ?a, IconState ?b) {
         unowned IconState id_a = (IconState) a;
         unowned IconState id_b = (IconState) b;
 
@@ -281,7 +279,7 @@ public class SortedListStore : Object {
         return section_function (a, b);
     }
 
-    private int section_function (Object ?a, Object ?b) {
+    private int section_function (IconState ?a, IconState ?b) {
         unowned IconState id_a = (IconState) a;
         unowned IconState id_b = (IconState) b;
 

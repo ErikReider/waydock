@@ -14,7 +14,7 @@ public enum Position {
 static Settings self_settings;
 
 static PinnedList pinned_list;
-static SortedListStore list_object;
+static IconStateListStore icons_list;
 static WlrForeignHelper foreign_helper;
 static UnityService unity_service;
 
@@ -81,7 +81,7 @@ public static int main (string[] args) {
     foreign_helper = new WlrForeignHelper ();
     unity_service = new UnityService ();
     pinned_list = new PinnedList ();
-    list_object = new SortedListStore ();
+    icons_list = new IconStateListStore ();
 
     // Load custom CSS
     Gtk.CssProvider css_provider = new Gtk.CssProvider ();

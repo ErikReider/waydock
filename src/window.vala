@@ -163,35 +163,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         }
     }
 
-    public Direction icon_is_adjacent (IconState reference, IconState sibling) {
-        if (reference == null || sibling == null || reference == sibling
-            || reference.pinned != sibling.pinned) {
-            return Direction.NONE;
-        }
-
-        uint ref_pos;
-        if (!list_object.find_sorted (reference, out ref_pos)) {
-            debug ("Could not find reference icon state in List Store");
-            return Direction.NONE;
-        }
-
-        if (ref_pos - 1 >= 0) {
-            IconState ?state = (IconState ?) list_object.get_item_sorted (ref_pos - 1);
-            if (state != null && state == sibling) {
-                return Direction.START;
-            }
-        }
-        if (ref_pos + 1 < list_object.get_n_items ()) {
-            IconState ?state = (IconState ?) list_object.get_item_sorted (ref_pos + 1);
-            if (state != null && state == sibling) {
-                return Direction.END;
-            }
-        }
-
-        return Direction.NONE;
-    }
-
     public void debug_print_list_store () {
-        list_object.debug_print_list_store ();
+        icons_list.debug_print_list_store ();
     }
 }

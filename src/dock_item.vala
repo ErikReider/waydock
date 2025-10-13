@@ -212,6 +212,34 @@ public class DockItem : Gtk.Widget {
         });
     }
 
+    private Direction icon_is_adjacent (IconState reference, IconState sibling) {
+        if (reference == null || sibling == null || reference == sibling
+            || reference.pinned != sibling.pinned) {
+            return Direction.NONE;
+        }
+
+        uint ref_pos;
+        if (!icons_list.find_sorted (reference, out ref_pos)) {
+            debug ("Could not find reference icon state in List Store");
+            return Direction.NONE;
+        }
+
+        if (ref_pos - 1 >= 0) {
+            IconState ?state = icons_list.get_item_sorted (ref_pos - 1);
+            if (state != null && state == sibling) {
+                return Direction.START;
+            }
+        }
+        if (ref_pos + 1 < icons_list.get_n_items ()) {
+            IconState ?state = icons_list.get_item_sorted (ref_pos + 1);
+            if (state != null && state == sibling) {
+                return Direction.END;
+            }
+        }
+
+        return Direction.NONE;
+    }
+
     private Gdk.DragAction calculate_dnd_direction (Gtk.DropTarget drop_target,
                                                     double x, double y) {
         // Skip self
@@ -222,7 +250,7 @@ public class DockItem : Gtk.Widget {
         }
         IconState drag_state = (IconState) value.get_object ();
 
-        Direction adjacent = window.icon_is_adjacent (icon.state, drag_state);
+        Direction adjacent = icon_is_adjacent (icon.state, drag_state);
 
         Direction dir;
         if (window.orientation == Gtk.Orientation.HORIZONTAL) {

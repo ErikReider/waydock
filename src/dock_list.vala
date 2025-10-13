@@ -16,7 +16,6 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
     private int num_children = 0;
 
     private unowned Window window;
-    private unowned Gtk.SortListModel sorted_list_store;
 
     public DockList (Window window) {
         Object (
@@ -28,12 +27,12 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         add_css_class ("dock");
 
         this.window = window;
-        this.sorted_list_store = list_object.sorted_list;
-        for (uint i = 0; i < list_object.get_n_items (); i++) {
+
+        for (uint i = 0; i < icons_list.get_n_items (); i++) {
             items_changed (i, 0, 1);
         }
-        this.sorted_list_store.items_changed.connect (items_changed);
-        this.sorted_list_store.section_sorter.changed.connect (sections_changed);
+        icons_list.sorted_list.items_changed.connect (items_changed);
+        icons_list.sorted_list.section_sorter.changed.connect (sections_changed);
     }
 
     private void items_changed (uint position, uint removed, uint added) {
@@ -56,7 +55,7 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
 
         for (uint i = 0; i < added; i++) {
             DockItem item = new DockItem (window);
-            item.init (sorted_list_store.get_item (position + i) as IconState);
+            item.init (icons_list.get_item_sorted (position + i));
 
             item.insert_before (this, items.nth_data (position + i));
             items.insert (item, (int) (position + i));
@@ -80,10 +79,10 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
 
         for (uint end = 0; ; ) {
             uint start;
-            sorted_list_store.get_section (end, out start, out end);
+            icons_list.get_section (end, out start, out end);
 
-            if (start >= sorted_list_store.n_items
-                || end > sorted_list_store.n_items) {
+            uint n_items = icons_list.get_n_items ();
+            if (start >= n_items || end > n_items) {
                 break;
             }
 

@@ -13,7 +13,6 @@ public class IconState : Object {
 
     public signal void refresh ();
     public signal void toplevel_added (Toplevel toplevel);
-    public signal bool request_icon_reposition (IconState target_state, Direction dir);
 
     public IconState (string ?app_id, bool pinned) {
         this.app_id = app_id;
@@ -73,14 +72,11 @@ public class IconState : Object {
         return first_link.data;
     }
 
-    public static bool request_icon_reposition_callback (IconState drag_state,
-                                                         IconState target_state,
-                                                         Direction dir) {
+    public bool request_icon_reposition (IconState target_state, Direction dir) {
         if (dir == Direction.NONE) {
             return false;
         }
-        if (drag_state.pinned || drag_state.minimized
-            || target_state.pinned || target_state.minimized) {
+        if (pinned || minimized || target_state.pinned || target_state.minimized) {
             debug ("Skipping pinned/minimized reordering");
             return false;
         }
@@ -88,24 +84,24 @@ public class IconState : Object {
         // Firstly, remove drag from list so that the target_position doesn't
         // get messed up
         uint drag_position;
-        if (!list_object.find (drag_state, out drag_position)) {
+        if (!icons_list.find (this, out drag_position)) {
             debug ("Could not find drag_state in List Store");
             return false;
         }
-        list_object.remove (drag_position);
+        icons_list.remove (drag_position);
 
         // Find the target position and adjust the index depending on if
         // dropped behind or in front of the target icon
         uint insert_index;
-        if (!list_object.find (target_state, out insert_index)) {
+        if (!icons_list.find (target_state, out insert_index)) {
             debug ("Could not find target_state in List Store");
             return false;
         }
         if (dir == Direction.END) {
-            insert_index = (insert_index + 1).clamp (0, list_object.get_n_items ());
+            insert_index = (insert_index + 1).clamp (0, icons_list.get_n_items ());
         }
 
-        list_object.insert (insert_index, drag_state);
+        icons_list.insert (insert_index, this);
         return true;
     }
 

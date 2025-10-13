@@ -31,7 +31,7 @@ app_sources = [
   'icon_state.vala',
   'main.vala',
   'pinned_list.vala',
-  'sorted_liststore.vala',
+  'icon_state_list_store.vala',
   'wlr_foreign_helper.vala',
   'window.vala',
   'unity_service.vala',
