@@ -1,5 +1,9 @@
 public class Constants {
     public const string VERSION = @VERSION@;
     public const string VERSIONNUM = @VERSION_NUM@;
-    public const uint ANIMATION_DURATION = 400;
+    public const uint ANIMATION_DURATION = 250;
+    public const uint REVEAL_PRESSURE = 250;
+    public const uint DISMISS_TIMEOUT = 500;
+    public const uint DISMISS_LONG_TIMEOUT = 1000;
+    public const int MINIMIZED_SIZE = 15;
 }

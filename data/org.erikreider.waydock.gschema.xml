@@ -16,5 +16,9 @@
 			<default>"bottom"</default>
 			<description>The position of the dock</description>
 		</key>
+		<key name="minimized" type="b">
+			<default>false</default>
+			<description>If the dock should be minimized (hover to reveal) or not.</description>
+		</key>
 	</schema>
 </schemalist>

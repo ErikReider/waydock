@@ -36,6 +36,12 @@ window {
     }
   }
 
+  /* Add all-around margin when in the minimized mode */
+  window.minimized > &.start,
+  window.minimized > &.end {
+    margin: $margin;
+  }
+
   & > dockitem {
     padding: 0 $margin / 2;
     /* Remove the dnd border */

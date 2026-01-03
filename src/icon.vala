@@ -134,6 +134,10 @@ public class Icon : Gtk.Box {
 
     private void show_popover (Gtk.Popover popover) {
         unowned Window window = (Window) get_root ();
+        window.popovers_open++;
+        popover.unmap.connect (() => {
+            window.popovers_open--;
+        });
         popover.set_parent (window);
 
         Graphene.Point out_point;

@@ -1,5 +1,4 @@
 public class DockItem : Gtk.Widget {
-    const int TRANSITION_DURATION = 250;
     Direction drag_direction = Direction.NONE;
 
     unowned Window window;
@@ -35,11 +34,12 @@ public class DockItem : Gtk.Widget {
     construct {
         Adw.PropertyAnimationTarget start_target
             = new Adw.PropertyAnimationTarget (this, "start-animation-progress");
-        start_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION,
+        start_animation = new Adw.TimedAnimation (this, 0.0, 0.0, Constants.ANIMATION_DURATION,
                                                   start_target);
         Adw.PropertyAnimationTarget end_target
             = new Adw.PropertyAnimationTarget (this, "end-animation-progress");
-        end_animation = new Adw.TimedAnimation (this, 0.0, 0.0, TRANSITION_DURATION, end_target);
+        end_animation = new Adw.TimedAnimation (this, 0.0, 0.0, Constants.ANIMATION_DURATION,
+                                                end_target);
     }
 
     public DockItem (Window window) {
@@ -165,12 +165,15 @@ public class DockItem : Gtk.Widget {
         });
         // Hide the docked icon until dnd end/cancel
         drag_source.drag_begin.connect (() => {
+            window.dragging_and_dropping = true;
             this.set_opacity (0.0);
         });
         drag_source.drag_end.connect (() => {
+            window.dragging_and_dropping = false;
             this.set_opacity (1.0);
         });
         drag_source.drag_cancel.connect (() => {
+            window.dragging_and_dropping = false;
             this.set_opacity (1.0);
             return true;
         });
@@ -184,6 +187,8 @@ public class DockItem : Gtk.Widget {
         drop_target.enter.connect (calculate_dnd_direction);
         drop_target.motion.connect (calculate_dnd_direction);
         drop_target.drop.connect ((value, x, y) => {
+            window.dragging_and_dropping = false;
+
             if (!value.holds (typeof (IconState))) {
                 warning ("Tried DND for invalid type: %s", value.type_name ());
             }
