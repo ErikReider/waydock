@@ -314,26 +314,43 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             if (surface == null) {
                 return;
             }
+            Cairo.Region region = new Cairo.Region ();
 
-            Cairo.RectangleInt rect = Cairo.RectangleInt () {
+            // The whole dock size, and make sure that the input region includes
+            // the whole horizontal/vertical "height"
+            Cairo.RectangleInt dock_rect = Cairo.RectangleInt () {
                 x = (int) bounds.get_x (),
                 y = (int) bounds.get_y (),
                 width = (int) bounds.get_width (),
                 height = (int) bounds.get_height (),
             };
-            // Make sure that the input region includes the whole
-            // horizontal/vertical "height"
             switch (orientation) {
                 case Gtk.Orientation.HORIZONTAL :
-                    rect.height = height;
-                    rect.y = 0;
+                    dock_rect.y = 0;
+                    dock_rect.height = height;
                     break;
                 case Gtk.Orientation.VERTICAL:
-                    rect.width = width;
-                    rect.x = 0;
+                    dock_rect.x = 0;
+                    dock_rect.width = width;
                     break;
             }
-            Cairo.Region region = new Cairo.Region.rectangle (rect);
+            region.union_rectangle (dock_rect);
+
+            // Include the hover bar
+            if (minimized) {
+                Cairo.RectangleInt hover_rect = Cairo.RectangleInt () {
+                    x = 0, y = 0, width = width, height = height,
+                };
+                switch (orientation) {
+                    case Gtk.Orientation.HORIZONTAL :
+                        hover_rect.height = Constants.MINIMIZED_SIZE;
+                        break;
+                    case Gtk.Orientation.VERTICAL:
+                        hover_rect.width = Constants.MINIMIZED_SIZE;
+                        break;
+                }
+                region.union_rectangle (hover_rect);
+            }
             surface.set_input_region (region);
         }
     }
