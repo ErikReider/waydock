@@ -371,7 +371,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                     x = 0, y = 0, width = width, height = height,
                 };
                 switch (orientation) {
-                    case Gtk.Orientation.HORIZONTAL :
+                    case Gtk.Orientation.HORIZONTAL:
                         hover_rect.height = Constants.MINIMIZED_SIZE;
                         break;
                     case Gtk.Orientation.VERTICAL:
