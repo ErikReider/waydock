@@ -1,3 +1,33 @@
+public enum AlignMode {
+    START,
+    CENTER,
+    END;
+
+    public string class_name () {
+        switch (this) {
+            case AlignMode.START:
+                return "align-start";
+            default:
+            case AlignMode.CENTER:
+                return "align-center";
+            case AlignMode.END:
+                return "align-end";
+        }
+    }
+
+    public Gtk.Align to_align () {
+        switch (this) {
+            case AlignMode.START:
+                return Gtk.Align.START;
+            default:
+            case AlignMode.CENTER:
+                return Gtk.Align.CENTER;
+            case AlignMode.END:
+                return Gtk.Align.END;
+        }
+    }
+}
+
 private struct WidgetMeasurements {
     int min;
     int nat;
@@ -14,6 +44,9 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
     private List<unowned DockItem> items = new List<unowned DockItem> ();
     private List<unowned Gtk.Separator> separators = new List<unowned Gtk.Separator> ();
     private int num_children = 0;
+
+    bool fill_space = false;
+    AlignMode align_mode = AlignMode.CENTER;
 
     private unowned Window window;
 
@@ -110,6 +143,51 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         sections_changed ();
     }
 
+    public void set_align_mode (bool force) {
+        bool fill_space_value = self_settings.get_boolean ("fill-space");
+        AlignMode align_mode_value = (AlignMode) self_settings.get_enum ("align-mode");
+        if (fill_space == fill_space_value
+            && align_mode == align_mode_value
+            && !force) {
+            return;
+        }
+        fill_space = fill_space_value;
+        align_mode = align_mode_value;
+
+        remove_css_class ("fill-space");
+        remove_css_class ("align-start");
+        remove_css_class ("align-center");
+        remove_css_class ("align-end");
+        if (fill_space) {
+            add_css_class ("fill-space");
+            add_css_class (align_mode.class_name ());
+
+            switch (orientation) {
+                case Gtk.Orientation.HORIZONTAL:
+                    set_halign (Gtk.Align.FILL);
+                    set_valign (Gtk.Align.CENTER);
+                    break;
+                case Gtk.Orientation.VERTICAL:
+                    set_halign (Gtk.Align.CENTER);
+                    set_valign (Gtk.Align.FILL);
+                    break;
+            }
+        } else {
+            switch (orientation) {
+                case Gtk.Orientation.HORIZONTAL:
+                    set_halign (align_mode.to_align ());
+                    set_valign (Gtk.Align.CENTER);
+                    break;
+                case Gtk.Orientation.VERTICAL:
+                    set_halign (Gtk.Align.CENTER);
+                    set_valign (align_mode.to_align ());
+                    break;
+            }
+        }
+
+        queue_allocate ();
+    }
+
     public override void dispose () {
         for (unowned Gtk.Widget ?child = get_first_child ();
              child != null;
@@ -149,6 +227,16 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         }
     }
 
+    private inline T orientated_size<T> (T horizontal, T vertical) {
+        switch (window.orientation) {
+            default :
+            case Gtk.Orientation.HORIZONTAL :
+                return horizontal;
+            case Gtk.Orientation.VERTICAL :
+                return vertical;
+        }
+    }
+
     private void compute_size (int width,
                                int height,
                                out int total_size,
@@ -171,17 +259,8 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
             }
 
             int min, nat;
-            switch (window.orientation) {
-                default :
-                case Gtk.Orientation.HORIZONTAL :
-                    child.measure (window.orientation, height,
-                                   out min, out nat, null, null);
-                    break;
-                case Gtk.Orientation.VERTICAL :
-                    child.measure (window.orientation, width,
-                                   out min, out nat, null, null);
-                    break;
-            }
+            child.measure (window.orientation, orientated_size (height, width),
+                           out min, out nat, null, null);
             heights[i] = WidgetMeasurements () {
                 min = min,
                 nat = nat,
@@ -237,24 +316,31 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
         }
     }
 
-    protected override void size_allocate (int width,
-                                           int height,
-                                           int baseline) {
+    protected override void size_allocate (int width, int height, int baseline) {
+        int size_unit = orientated_size (width, height);
+
         // Save the already computed widget heights. We need the total height
         // for calculating the reversed list animation, so two loops through the
         // widgets is necessary...
         int total_size;
         WidgetAlloc[] sizes;
         compute_size (width, height, out total_size, out sizes);
+        // Limit the totoal size to the window size
+        total_size = int.min (size_unit, total_size);
 
-        switch (window.orientation) {
-            default :
-            case Gtk.Orientation.HORIZONTAL :
-                total_size = int.max (width, total_size);
-                break;
-            case Gtk.Orientation.VERTICAL:
-                total_size = int.max (height, total_size);
-                break;
+        float align_shift = 0;
+        if (fill_space) {
+            switch (align_mode) {
+                case AlignMode.START :
+                    break;
+                case AlignMode.CENTER :
+                    align_shift = (size_unit - total_size) / 2;
+                    break;
+                case AlignMode.END:
+                    align_shift = size_unit - total_size;
+                    break;
+            }
+            align_shift = float.max (align_shift, 0);
         }
 
         // Allocate the size and position of each item
@@ -268,36 +354,25 @@ public class DockList : Gtk.Widget, Gtk.Orientable {
             }
 
             WidgetAlloc child_allocation = sizes[index];
-            switch (window.orientation) {
-                default :
-                case Gtk.Orientation.HORIZONTAL:
-                    child.allocate (child_allocation.size,
-                                    height,
-                                    baseline,
-                                    new Gsk.Transform ().translate (
-                                        Graphene.Point ().init (child_allocation.offset, 0)
-                    ));
-                    break;
-                case Gtk.Orientation.VERTICAL:
-                    child.allocate (width,
-                                    child_allocation.size,
-                                    baseline,
-                                    new Gsk.Transform ().translate (
-                                        Graphene.Point ().init (0, child_allocation.offset)
-                    ));
-                    break;
-            }
-
+            float offset = child_allocation.offset + align_shift;
+            child.allocate (
+                orientated_size (child_allocation.size, width),
+                orientated_size (height, child_allocation.size),
+                baseline,
+                new Gsk.Transform ().translate (
+                    Graphene.Point ().init (
+                        orientated_size<float ?> (offset, 0.0f) ?? 0.0f,
+                        orientated_size<float ?> (0.0f, offset) ?? 0.0f
+                    )
+                )
+            );
             index++;
         }
     }
 
-    protected override void measure (Gtk.Orientation orientation,
-                                     int for_size,
-                                     out int minimum,
-                                     out int natural,
-                                     out int minimum_baseline,
-                                     out int natural_baseline) {
+    protected override void measure (Gtk.Orientation orientation, int for_size,
+                                     out int minimum, out int natural,
+                                     out int minimum_baseline, out int natural_baseline) {
         minimum = 0;
         natural = 0;
         minimum_baseline = -1;

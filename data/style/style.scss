@@ -36,6 +36,12 @@ window {
   window.floating > & {
     margin: $margin;
   }
+  /* Disable border radius when filling space and not floating */
+  window:not(.floating) > & {
+    &.fill-space {
+      border-radius: 0;
+    }
+  }
 
   & > dockitem {
     padding: 0 $margin / 2;

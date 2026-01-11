@@ -42,8 +42,6 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
     uint enter_timeout_id = 0;
     uint leave_timeout_id = 0;
 
-    public bool is_constructed { get; construct; }
-
     // TODO: Parse ~/.config/monitors.xml for primary output
     public Window (WaydockApp app, Gdk.Monitor monitor) {
         Object (
@@ -104,11 +102,10 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         });
         motion_controller.leave.connect (() => add_leave_timeout (Constants.DISMISS_TIMEOUT));
 
-        set_position ();
-        set_minimized_value ();
-        set_floating_value ();
-
-        is_constructed = true;
+        set_position (true);
+        set_minimized_value (true);
+        set_floating_value (true);
+        set_fill_value (true);
     }
 
     private void remove_timeout (ref uint id) {
@@ -179,14 +176,18 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             case "floating":
                 set_floating_value ();
                 break;
+            case "fill-space":
+            case "align-mode":
+                set_fill_value ();
+                break;
             default:
                 break;
         }
     }
 
-    private void set_minimized_value () {
+    private void set_minimized_value (bool force = false) {
         bool value = self_settings.get_boolean ("minimized");
-        if (minimized == value && is_constructed) {
+        if (minimized == value && !force) {
             return;
         }
         minimized = value;
@@ -211,9 +212,9 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         queue_resize ();
     }
 
-    private void set_floating_value () {
+    private void set_floating_value (bool force = false) {
         bool value = self_settings.get_boolean ("floating");
-        if (floating == value && is_constructed) {
+        if (floating == value && !force) {
             return;
         }
         floating = value;
@@ -230,9 +231,14 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         queue_resize ();
     }
 
-    private void set_position () {
+    private void set_fill_value (bool force = false) {
+        list.set_align_mode (force);
+        queue_allocate ();
+    }
+
+    private void set_position (bool force = false) {
         Position value = (Position) self_settings.get_enum ("position");
-        if (value == position && is_constructed) {
+        if (value == position && !force) {
             return;
         }
         position = value;
@@ -257,8 +263,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         }
 
         list.set_orientation (orientation);
-        list.set_halign (Gtk.Align.CENTER);
-        list.set_valign (Gtk.Align.CENTER);
+        list.set_align_mode (true);
 
         list.remove_css_class ("vertical");
         list.remove_css_class ("horizontal");

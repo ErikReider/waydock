@@ -7,6 +7,12 @@
 		<value nick="bottom" value="3"/>
 	</enum>
 
+	<enum id="org.erikreider.waydock.align-mode">
+		<value nick="start" value="0"/>
+		<value nick="center" value="1"/>
+		<value nick="end" value="2"/>
+	</enum>
+
 	<schema id="org.erikreider.waydock" path="/org/erikreider/waydock/">
 		<key name="pinned" type="as">
 			<default>[]</default>
@@ -23,6 +29,14 @@
 		<key name="floating" type="b">
 			<default>true</default>
 			<description>If the dock should be floating or not.</description>
+		</key>
+		<key name="fill-space" type="b">
+			<default>false</default>
+			<description>If the dock should fill the full space of the layer.</description>
+		</key>
+		<key name="align-mode" enum="org.erikreider.waydock.align-mode">
+			<default>"center"</default>
+			<description>How the dock should position the dock items.</description>
 		</key>
 	</schema>
 </schemalist>
