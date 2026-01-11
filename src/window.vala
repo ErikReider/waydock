@@ -21,6 +21,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
 
     Position position = Position.BOTTOM;
     bool minimized = false;
+    bool floating = true;
 
     Gtk.EventControllerMotion motion_controller;
 
@@ -105,6 +106,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
 
         set_position ();
         set_minimized_value ();
+        set_floating_value ();
 
         is_constructed = true;
     }
@@ -174,6 +176,9 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             case "minimized":
                 set_minimized_value ();
                 break;
+            case "floating":
+                set_floating_value ();
+                break;
             default:
                 break;
         }
@@ -201,6 +206,25 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         remove_timeout (ref enter_timeout_id);
         animation.pause ();
         animation_progress = (int) (!minimized);
+
+        force_recompute_size ();
+        queue_resize ();
+    }
+
+    private void set_floating_value () {
+        bool value = self_settings.get_boolean ("floating");
+        if (floating == value && is_constructed) {
+            return;
+        }
+        floating = value;
+
+        if (floating) {
+            if (!has_css_class ("floating")) {
+                add_css_class ("floating");
+            }
+        } else {
+            remove_css_class ("floating");
+        }
 
         force_recompute_size ();
         queue_resize ();

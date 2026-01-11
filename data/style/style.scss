@@ -11,34 +11,29 @@ window {
 
 .dock {
   border-radius: $radius;
-  margin: $margin;
+  margin: 0;
   padding: $margin;
   background: #{"alpha(var(--window-bg-color), 0.5)"};
 
   &.vertical {
     &.start {
-      margin-right: 0;
       padding-left: 0;
     }
     &.end {
-      margin-left: 0;
       padding-right: 0;
     }
   }
   &.horizontal {
     &.start {
-      margin-bottom: 0;
       padding-top: 0;
     }
     &.end {
-      margin-top: 0;
       padding-bottom: 0;
     }
   }
 
-  /* Add all-around margin when in the minimized mode */
-  window.minimized > &.start,
-  window.minimized > &.end {
+  /* Add all-around margin when in the floating mode */
+  window.floating > & {
     margin: $margin;
   }
 

@@ -20,5 +20,9 @@
 			<default>false</default>
 			<description>If the dock should be minimized (hover to reveal) or not.</description>
 		</key>
+		<key name="floating" type="b">
+			<default>true</default>
+			<description>If the dock should be floating or not.</description>
+		</key>
 	</schema>
 </schemalist>
