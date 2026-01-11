@@ -106,7 +106,7 @@ public class IconState : Object {
     }
 
     private void unity_entry_added (string app_id, LauncherEntry entry) {
-        if (app_info ? .get_id () != app_id) {
+        if (app_info?.get_id () != app_id) {
             return;
         }
 

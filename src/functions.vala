@@ -193,7 +193,7 @@ private static DesktopAppInfo ?try_app_info_search (string app_id, string test_i
                 // Backup
                 if (entry->contains (app_id)) {
                     second_choice = new DesktopAppInfo (entry);
-                } else if (app_info.get_name () ? .down () == app_id.down ()) {
+                } else if (app_info.get_name ()?.down () == app_id.down ()) {
                     second_choice = app_info;
                 } else if (app_info.get_executable () == app_id) {
                     second_choice = app_info;
@@ -250,19 +250,10 @@ static DesktopAppInfo ?get_app_info (string ?app_id, string[] titles) {
     return null;
 }
 
-static unowned Wl.Display get_wl_display () {
-    unowned var display = Gdk.Display.get_default ();
-    if (display is Gdk.Wayland.Display) {
-        return ((Gdk.Wayland.Display) display).get_wl_display ();
-    }
-    GLib.error ("Only supports Wayland!");
-}
-
 static Gdk.Paintable ? get_paintable_from_app_info (DesktopAppInfo ? app_info,
                                                     string ?app_id,
                                                     int size,
                                                     int scale_factor) {
-    unowned var display = Gdk.Display.get_default ();
     unowned Gtk.IconTheme theme = Gtk.IconTheme.get_for_display (display);
 
     // Fallback
@@ -293,7 +284,6 @@ static Gdk.Paintable ? get_paintable_from_app_info (DesktopAppInfo ? app_info,
 static void set_image_icon_from_app_info (DesktopAppInfo ?app_info,
                                           string ?app_id,
                                           Gtk.Image image) {
-    unowned var display = Gdk.Display.get_default ();
     unowned Gtk.IconTheme theme = Gtk.IconTheme.get_for_display (display);
 
     // Fallback

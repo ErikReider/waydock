@@ -55,8 +55,7 @@ public class WlrForeignHelper : Object {
             return;
         }
         started = true;
-        unowned Wl.Display wl_display = get_wl_display ();
-        var wl_registry = wl_display.get_registry ();
+        Wl.Registry wl_registry = wl_display.get_registry ();
         wl_registry.add_listener (registry_listener, this);
 
         if (wl_display.roundtrip () < 0) {
@@ -76,10 +75,7 @@ public class WlrForeignHelper : Object {
             return false;
         }
 
-        unowned Gdk.Seat seat = Gdk.Display.get_default ().get_default_seat ();
-        assert (seat is Gdk.Wayland.Seat);
-        toplevel.handle.activate (((Gdk.Wayland.Seat) seat).get_wl_seat ());
-
+        toplevel.handle.activate (wl_seat);
         return true;
     }
 
@@ -91,7 +87,6 @@ public class WlrForeignHelper : Object {
                 GLib.error ("Manager is null!");
             }
 
-            unowned Wl.Display wl_display = get_wl_display ();
             manager.add_listener (MANAGER_LISTENER, this);
             if (wl_display.roundtrip () < 0) {
                 return;
@@ -104,8 +99,6 @@ public class WlrForeignHelper : Object {
     //
 
     private void handle_toplevel (Manager manager, Handle handle) {
-        unowned Wl.Display wl_display = get_wl_display ();
-
         Toplevel toplevel = new Toplevel ();
         toplevel.handle = handle;
         handle.add_listener (TOPLEVEL_LISTENER, toplevel);

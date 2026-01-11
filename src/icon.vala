@@ -203,7 +203,7 @@ public class Icon : Gtk.Box {
         // App Actions
         Menu app_section = new Menu ();
         SimpleActionGroup app_actions = new SimpleActionGroup ();
-        foreach (var action in state.app_info ? .list_actions ()) {
+        foreach (var action in state.app_info?.list_actions ()) {
             has_actions = true;
 
             MenuItem item = new MenuItem (

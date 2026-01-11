@@ -1,7 +1,7 @@
 public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
-    private DockList list;
-
-    public unowned Gdk.Monitor monitor { get; construct set; }
+    public unowned Gdk.Monitor monitor { get; construct; }
+    public bool dragging_and_dropping { get; set; default = false; }
+    public int popovers_open { get; set; default = 0; }
 
     public Direction orientation_direction { get; set; default = Direction.START; }
     public Gtk.Orientation orientation { get; set; default = Gtk.Orientation.VERTICAL; }
@@ -17,7 +17,11 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         }
     }
 
-    public bool minimized { get; private set; default = false; }
+    private DockList list;
+
+    Position position = Position.BOTTOM;
+    bool minimized = false;
+
     Gtk.EventControllerMotion motion_controller;
 
     double _animation_progress = 0.0;
@@ -29,7 +33,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             _animation_progress = value;
             queue_resize ();
             // Delay the refresh until the above resize has been completed
-            Idle.add_once (refresh_anchor);
+            Idle.add_once (force_recompute_size);
         }
     }
     Adw.TimedAnimation animation;
@@ -37,17 +41,18 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
     uint enter_timeout_id = 0;
     uint leave_timeout_id = 0;
 
-    public bool dragging_and_dropping { get; set; default = false; }
-    public int popovers_open { get; set; default = 0; }
+    public bool is_constructed { get; construct; }
 
     // TODO: Parse ~/.config/monitors.xml for primary output
-    public Window (Gtk.Application app, Gdk.Monitor monitor) {
+    public Window (WaydockApp app, Gdk.Monitor monitor) {
         Object (
             application: app,
             monitor: monitor,
             overflow: Gtk.Overflow.HIDDEN
         );
+    }
 
+    construct {
         // Layer shell
         GtkLayerShell.init_for_window (this);
         GtkLayerShell.set_layer (this, GtkLayerShell.Layer.TOP);
@@ -66,7 +71,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             = new Adw.PropertyAnimationTarget (this, "animation-progress");
         animation = new Adw.TimedAnimation (this, 0.0, 1.0, Constants.ANIMATION_DURATION,
                                             animation_target);
-        animation.done.connect (refresh_anchor);
+        animation.done.connect (force_recompute_size);
 
         notify["dragging-and-dropping"].connect (update_motion_controller_state);
         notify["popovers-open"].connect (update_motion_controller_state);
@@ -86,7 +91,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                 remove_timeout (ref leave_timeout_id);
                 lock (animation) {
                     if (animation_progress >= 1.0) {
-                        refresh_anchor ();
+                        force_recompute_size ();
                         return;
                     }
                     animation.pause ();
@@ -100,6 +105,8 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
 
         set_position ();
         set_minimized_value ();
+
+        is_constructed = true;
     }
 
     private void remove_timeout (ref uint id) {
@@ -124,7 +131,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             remove_timeout (ref enter_timeout_id);
             lock (animation) {
                 if (animation_progress <= 0.0) {
-                    refresh_anchor ();
+                    force_recompute_size ();
                     return;
                 }
                 animation.pause ();
@@ -133,6 +140,27 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                 animation.play ();
             }
         });
+    }
+
+    private void force_recompute_size () {
+        if (minimized) {
+            // HACK: Force a size update by setting the auto exclusive zone
+            // Fix when gtk4-layer-shell exposes zwlr_layer_surface_v1_set_size
+            GtkLayerShell.auto_exclusive_zone_enable (this);
+            GtkLayerShell.set_exclusive_zone (this, Constants.MINIMIZED_SIZE);
+        } else {
+            GtkLayerShell.set_exclusive_zone (this, 0);
+            GtkLayerShell.auto_exclusive_zone_enable (this);
+        }
+    }
+
+    private void update_motion_controller_state () {
+        popovers_open = int.max (popovers_open, 0);
+
+        bool motion_enabled = minimized && !dragging_and_dropping && popovers_open == 0;
+        motion_controller.set_propagation_phase (
+            motion_enabled ? Gtk.PropagationPhase.CAPTURE : Gtk.PropagationPhase.NONE);
+        add_leave_timeout (Constants.DISMISS_LONG_TIMEOUT);
     }
 
     private void settings_changed (string name) {
@@ -151,65 +179,12 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         }
     }
 
-    private void refresh_anchor () {
-        switch (orientation) {
-            case Gtk.Orientation.HORIZONTAL:
-                switch (orientation_direction) {
-                    case Direction.START:
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, false);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
-                        break;
-                    case Direction.END:
-                    case Direction.NONE:
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, false);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
-                        break;
-                }
-                break;
-            case Gtk.Orientation.VERTICAL:
-                switch (orientation_direction) {
-                    case Direction.START:
-                    case Direction.NONE:
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, false);
-                        break;
-                    case Direction.END:
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, false);
-                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
-                        break;
-                }
-                break;
-        }
-
-        if (minimized) {
-            // HACK: Force a size update by setting the auto exclusive zone
-            GtkLayerShell.auto_exclusive_zone_enable (this);
-            GtkLayerShell.set_exclusive_zone (this, Constants.MINIMIZED_SIZE);
-        } else {
-            GtkLayerShell.set_exclusive_zone (this, 0);
-            GtkLayerShell.auto_exclusive_zone_enable (this);
-        }
-    }
-
-    private void update_motion_controller_state () {
-        popovers_open = int.max (popovers_open, 0);
-
-        bool motion_enabled = minimized && !dragging_and_dropping && popovers_open == 0;
-        motion_controller.set_propagation_phase (
-            motion_enabled ? Gtk.PropagationPhase.CAPTURE : Gtk.PropagationPhase.NONE);
-        add_leave_timeout (Constants.DISMISS_LONG_TIMEOUT);
-    }
-
     private void set_minimized_value () {
-        minimized = self_settings.get_boolean ("minimized");
+        bool value = self_settings.get_boolean ("minimized");
+        if (minimized == value && is_constructed) {
+            return;
+        }
+        minimized = value;
 
         if (minimized) {
             if (!has_css_class ("minimized")) {
@@ -227,12 +202,18 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         animation.pause ();
         animation_progress = (int) (!minimized);
 
-        refresh_anchor ();
+        force_recompute_size ();
         queue_resize ();
     }
 
     private void set_position () {
-        switch ((Position) self_settings.get_enum ("position")) {
+        Position value = (Position) self_settings.get_enum ("position");
+        if (value == position && is_constructed) {
+            return;
+        }
+        position = value;
+
+        switch (position) {
             case Position.TOP:
                 orientation = Gtk.Orientation.HORIZONTAL;
                 orientation_direction = Direction.START;
@@ -265,10 +246,18 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                 switch (orientation_direction) {
                     case Direction.START:
                         list.add_css_class ("start");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, false);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
                         break;
                     case Direction.END:
                     case Direction.NONE:
                         list.add_css_class ("end");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, false);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
                         break;
                 }
                 break;
@@ -278,15 +267,23 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                     case Direction.START:
                     case Direction.NONE:
                         list.add_css_class ("start");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, false);
                         break;
                     case Direction.END:
                         list.add_css_class ("end");
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.TOP, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.BOTTOM, true);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.LEFT, false);
+                        GtkLayerShell.set_anchor (this, GtkLayerShell.Edge.RIGHT, true);
                         break;
                 }
                 break;
         }
 
-        refresh_anchor ();
+        force_recompute_size ();
 
         // TODO: Resize all the icons to fit the width/height (shrink)
         list.refresh_items ();

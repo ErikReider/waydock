@@ -97,7 +97,7 @@ public class IconStateListStore : Object {
             if (state.minimized) {
                 prefix = 'M';
             }
-            print ("\t%u: %c %s\n", i, prefix, state ? .app_id);
+            print ("\t%u: %c %s\n", i, prefix, state?.app_id);
         }
         print ("\n");
     }
