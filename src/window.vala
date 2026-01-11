@@ -326,9 +326,11 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             switch (orientation) {
                 case Gtk.Orientation.HORIZONTAL :
                     rect.height = height;
+                    rect.y = 0;
                     break;
                 case Gtk.Orientation.VERTICAL:
                     rect.width = width;
+                    rect.x = 0;
                     break;
             }
             Cairo.Region region = new Cairo.Region.rectangle (rect);
