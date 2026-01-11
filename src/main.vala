@@ -53,30 +53,8 @@ public static int main (string[] args) {
     Gtk.init ();
     Adw.init ();
 
-#if USE_GLOBAL_GSCHEMA
     // Use the global compiled gschema in /usr/share/glib-2.0/schemas/*
     self_settings = new Settings ("org.erikreider.waydock");
-#else
-    message ("Using local GSchema");
-    // Meant for use in development.
-    // Uses the compiled gschema in waydock/data/
-    // Should never be used in production!
-    string settings_dir = Path.build_path (Path.DIR_SEPARATOR_S,
-                                           Environment.get_current_dir (),
-                                           "data");
-    try {
-        SettingsSchemaSource sss = new SettingsSchemaSource.from_directory (settings_dir, null,
-                                                                            false);
-        SettingsSchema schema = sss.lookup ("org.erikreider.waydock", false);
-        if (schema == null) {
-            error ("ID not found.\n");
-            return 0;
-        }
-        self_settings = new Settings.full (schema, null, null);
-    } catch (Error e) {
-        error ("Could not load GSchema: %s", e.message);
-    }
-#endif
 
     foreign_helper = new WlrForeignHelper ();
     unity_service = new UnityService ();

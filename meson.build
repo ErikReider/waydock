@@ -6,6 +6,8 @@ project(
   default_options: ['warning_level=2'],
 )
 
+dev_env = environment()
+
 add_project_arguments(['-w'], language: 'c')
 add_project_arguments(['-Wno-error=int-conversion'], language: 'c')
 add_project_arguments(['--enable-gobject-tracing'], language: 'vala')
@@ -25,6 +27,8 @@ app_resources = []
 
 subdir('data')
 subdir('src')
+
+meson.add_devenv(dev_env)
 
 conf_data = configuration_data()
 conf_data.set('bindir', join_paths(get_option('prefix'), get_option('bindir')))

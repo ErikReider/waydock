@@ -11,10 +11,21 @@ max_line_length = 100
 tab_width = 4
 
 # Markup files
-[{*.html,*.xml,*.xml.in,*.yml,*.scss,*.css}]
+[{*.html,*.xml,*.xml.in,*.yml}]
+indent_style = tab
 tab_width = 2
 
 # Man pages
 [*.scd]
 indent_style = tab
 tab_width = 4
+
+[*.{h,c}]
+indent_style = tab
+indent_size = 4
+
+[*.{scss,css,blp}]
+indent_size = 2
+
+[meson.build]
+indent_size = 2
