@@ -41,13 +41,12 @@ app_sources = [
 assert(vala.version() >= '0.56')
 
 app_deps = [
-  dependency('gio-2.0', version: '>= 2.50'),
-  dependency('gio-unix-2.0', version: '>= 2.50'),
-  dependency('gtk4', version: '>= 4.14'),
-  dependency('json-glib-1.0', version: '>= 1.0'),
-  dependency('granite-7', version: '>= 7.5.0'),
-  dependency('gtk4-layer-shell-0', version: '>= 1.1.1'),
-  dependency('libadwaita-1', version: '>= 1.5.0'),
+  dependency('gio-2.0', version: '>= 2.86'),
+  dependency('gio-unix-2.0', version: '>= 2.86'),
+  dependency('gtk4', version: '>= 4.20'),
+  dependency('granite-7', version: '>= 7.7.0'),
+  dependency('gtk4-layer-shell-0', version: '>= 1.3.0'),
+  dependency('libadwaita-1', version: '>= 1.8.0'),
   cc.find_library('m', required: true),
   vala.find_library('posix'),
   dependency('gee-0.8'),
@@ -57,7 +56,7 @@ app_deps = [
 ]
 
 args = [
-  '--target-glib=2.50',
+  '--target-glib=2.86',
 ]
 
 executable(
@@ -67,6 +66,3 @@ executable(
   dependencies: app_deps,
   install: true,
 )
-
-config_data = configuration_data()
-config_data.set_quoted('JSONPATH', join_paths('/', config_path, 'configSchema.json'))

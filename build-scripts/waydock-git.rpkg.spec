@@ -14,13 +14,12 @@ BuildRequires: meson >= 0.60.0
 BuildRequires: vala
 BuildRequires: git
 
-BuildRequires: pkgconfig(gio-2.0) >= 2.50
-BuildRequires: pkgconfig(gio-unix-2.0) >= 2.50
-BuildRequires: pkgconfig(gtk4) >= 4.14
-BuildRequires: pkgconfig(json-glib-1.0) >= 1.0
-BuildRequires: pkgconfig(granite-7) >= 7.5.0
-BuildRequires: pkgconfig(gtk4-layer-shell-0) >= 1.1.1
-BuildRequires: pkgconfig(libadwaita-1) >= 1.5.0
+BuildRequires: pkgconfig(gio-2.0) >= 2.86
+BuildRequires: pkgconfig(gio-unix-2.0) >= 2.86
+BuildRequires: pkgconfig(gtk4) >= 4.20
+BuildRequires: pkgconfig(granite-7) >= 7.7.0
+BuildRequires: pkgconfig(gtk4-layer-shell-0) >= 1.3.0
+BuildRequires: pkgconfig(libadwaita-1) >= 1.8.0
 BuildRequires: pkgconfig(gee-0.8)
 BuildRequires: pkgconfig(gtk4-wayland)
 BuildRequires: pkgconfig(wayland-client)
