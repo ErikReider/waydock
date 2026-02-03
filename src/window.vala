@@ -77,7 +77,7 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         motion_controller.motion.connect ((x, y) => {
             remove_timeout (ref leave_timeout_id);
         });
-        motion_controller.enter.connect ((event) => {
+        motion_controller.enter.connect (() => {
             remove_timeout (ref leave_timeout_id);
             if (enter_timeout_id > 0 || animation.state == Adw.AnimationState.PLAYING) {
                 return;
@@ -336,8 +336,10 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                     break;
             }
             set_default_size (animated_width, animated_height);
+            child.set_sensitive (animation_progress >= 1.0);
             child.allocate (child_width, child_height, baseline, null);
         } else {
+            child.set_sensitive (true);
             base.size_allocate (width, height, baseline);
         }
 

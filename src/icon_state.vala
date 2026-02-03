@@ -72,6 +72,14 @@ public class IconState : Object {
         return first_link.data;
     }
 
+    public inline bool only_single_toplevel () {
+        return toplevels.nth (0) != null && toplevels.nth (1) == null;
+    }
+
+    public inline bool multiple_toplevels () {
+        return toplevels.nth (0) != null && toplevels.nth (1) != null;
+    }
+
     public bool request_icon_reposition (IconState target_state, Direction dir) {
         if (dir == Direction.NONE) {
             return false;

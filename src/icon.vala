@@ -3,7 +3,12 @@ public class Icon : Gtk.Box {
 
     private string app_name;
 
+    private int popovers_open = 0;
+
     Gtk.GestureClick gesture_click;
+    Gtk.EventControllerMotion motion_controller;
+
+    private IconTooltip tooltip_popover;
 
     private Gtk.Overlay overlay;
     private Gtk.Image image;
@@ -19,14 +24,10 @@ public class Icon : Gtk.Box {
         }
     }
 
-    public Icon (Window window) {
-        Object (
-            orientation : window.opposite_orientation,
-            spacing: 4
-        );
-        this.window = window;
-
+    construct {
         add_css_class ("dock-icon");
+
+        tooltip_popover = new IconTooltip ();
 
         overlay = new Gtk.Overlay ();
         append (overlay);
@@ -62,6 +63,15 @@ public class Icon : Gtk.Box {
         append (num_open_box);
     }
 
+    public Icon (Window window) {
+        Object (
+            css_name: "dockicon",
+            orientation : window.opposite_orientation,
+            spacing: 4
+        );
+        this.window = window;
+    }
+
     public void init (IconState state) {
         this.state = state;
         this.app_name = state.app_id;
@@ -74,6 +84,11 @@ public class Icon : Gtk.Box {
         gesture_click.set_button (0);
         gesture_click.released.connect (click_listener);
         add_controller (gesture_click);
+
+        motion_controller = new Gtk.EventControllerMotion ();
+        motion_controller.enter.connect (show_tooltip);
+        motion_controller.leave.connect (hide_tooltip);
+        add_controller (motion_controller);
 
         listen_to_signals ();
 
@@ -132,24 +147,7 @@ public class Icon : Gtk.Box {
         }
     }
 
-    private void show_popover (Gtk.Popover popover) {
-        unowned Window window = (Window) get_root ();
-        window.popovers_open++;
-        popover.unmap.connect (() => {
-            window.popovers_open--;
-        });
-        popover.set_parent (window);
-
-        Graphene.Point out_point;
-        compute_point (window, Graphene.Point.zero (), out out_point);
-        var rect = Gdk.Rectangle () {
-            x = (int) out_point.x,
-            y = (int) out_point.y,
-            width = get_width (),
-            height = get_height (),
-        };
-        popover.set_pointing_to (rect);
-
+    private inline void position_popover (Gtk.Popover popover) {
         switch (window.orientation) {
             case Gtk.Orientation.HORIZONTAL:
                 switch (window.orientation_direction) {
@@ -174,16 +172,29 @@ public class Icon : Gtk.Box {
                 }
                 break;
         }
+    }
+
+    private void show_popover (Gtk.Popover popover) {
+        popovers_open++;
+        window.popovers_open++;
+        popover.unmap.connect (() => {
+            popovers_open--;
+            window.popovers_open--;
+            // Make sure to try to show the tooltip again
+            show_tooltip ();
+        });
+        popover.set_parent (this);
+
+        position_popover (popover);
 
         popover.popup ();
     }
 
     private void left_click () {
         // Check if only there's only 1 item
-        uint length = state.toplevels.length ();
-        if (length == 0) {
+        if (state.toplevels.is_empty ()) {
             launch_application (state.app_id, state.app_info, state.keyfile, null);
-        } else if (length == 1) {
+        } else if (state.only_single_toplevel ()) {
             WlrForeignHelper.activate_toplevel (state.toplevels.nth_data (0));
         } else {
             // Show window picker popover
@@ -244,7 +255,7 @@ public class Icon : Gtk.Box {
             });
             actions.add_action (simple_action);
         }
-        if (state.toplevels.nth (0) != null) {
+        if (!state.toplevels.is_empty ()) {
             string text = state.toplevels.nth (1) != null ? "Close All" : "Close";
             main_section.append (text, "menu.close");
             SimpleAction simple_action = new SimpleAction ("close", null);
@@ -276,28 +287,51 @@ public class Icon : Gtk.Box {
     private void refresh_name () {
         if (state.app_info != null) {
             app_name = state.app_info.get_display_name ();
-        } else {
-            unowned var link = state.toplevels.first ();
-            if (link != null && link.data != null && link.data.title != null) {
-                app_name = link.data.title;
-            } else {
-                app_name = state.app_id ?? "Unknown";
+            if (app_name != null) {
+                return;
             }
+        }
+        unowned var link = state.toplevels.first ();
+        if (link != null && link.data != null && link.data.title != null) {
+            app_name = link.data.title;
+        } else {
+            app_name = state.app_id;
+        }
+
+        if (app_name == null) {
+            app_name = "Unknown";
         }
     }
 
-    private void set_tooltip () {
+    private void update_tooltip () {
         if (state.minimized) {
-            string app_name = state.app_id ?? "Unknown";
-            unowned var link = state.toplevels.first ();
+            string text = app_name;
+            unowned List<unowned Toplevel> ?link = state.toplevels.first ();
             if (link != null && link.data != null && link.data.title != null) {
-                app_name = link.data.title;
+                text = "%s\n%s".printf (app_name, link.data.title);
             }
-            set_tooltip_text (app_name);
-        } else if (state.toplevels.length () <= 1) {
-            set_tooltip_text (app_name);
+            tooltip_popover.set_text (text);
+        } else if (!state.multiple_toplevels ()) {
+            tooltip_popover.set_text (app_name);
         } else {
-            set_tooltip_text ("%s - %u".printf (app_name, state.toplevels.length ()));
+            tooltip_popover.set_text ("%s - %u".printf (app_name, state.toplevels.length ()));
+        }
+        position_popover (tooltip_popover);
+    }
+
+    private void hide_tooltip () {
+        tooltip_popover.popdown ();
+        tooltip_popover.unparent ();
+    }
+
+    private void show_tooltip () {
+        // Only display the tooltip if no other popover is visible
+        if (!tooltip_popover.get_visible ()
+            && popovers_open == 0
+            && motion_controller.contains_pointer) {
+            tooltip_popover.set_parent (this);
+            position_popover (tooltip_popover);
+            tooltip_popover.popup ();
         }
     }
 
@@ -342,7 +376,7 @@ public class Icon : Gtk.Box {
         refresh_name ();
         set_running_circles ();
         // TODO: Popover tooltips instead to always make them appear above the dock
-        set_tooltip ();
+        update_tooltip ();
 
         // Reposition the running circles depending on the window position to
         // ensure that the buttons always are closest to the monitor edge.
@@ -350,8 +384,8 @@ public class Icon : Gtk.Box {
             case Direction.START :
                 reorder_child_after (num_open_box, null);
                 break;
-            case Direction.NONE:
-            case Direction.END:
+            case Direction.NONE :
+            case Direction.END :
                 reorder_child_after (num_open_box, overlay);
                 break;
         }
