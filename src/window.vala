@@ -33,8 +33,6 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         set {
             _animation_progress = value;
             queue_resize ();
-            // Delay the refresh until the above resize has been completed
-            Idle.add_once (force_recompute_size);
         }
     }
     Adw.TimedAnimation animation;
@@ -70,7 +68,6 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             = new Adw.PropertyAnimationTarget (this, "animation-progress");
         animation = new Adw.TimedAnimation (this, 0.0, 1.0, Constants.ANIMATION_DURATION,
                                             animation_target);
-        animation.done.connect (force_recompute_size);
 
         notify["dragging-and-dropping"].connect (update_motion_controller_state);
         notify["popovers-open"].connect (update_motion_controller_state);
@@ -90,7 +87,6 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                 remove_timeout (ref leave_timeout_id);
                 lock (animation) {
                     if (animation_progress >= 1.0) {
-                        force_recompute_size ();
                         return;
                     }
                     animation.pause ();
@@ -130,7 +126,6 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             remove_timeout (ref enter_timeout_id);
             lock (animation) {
                 if (animation_progress <= 0.0) {
-                    force_recompute_size ();
                     return;
                 }
                 animation.pause ();
@@ -139,18 +134,6 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                 animation.play ();
             }
         });
-    }
-
-    private void force_recompute_size () {
-        if (minimized) {
-            // HACK: Force a size update by setting the auto exclusive zone
-            // Fix when gtk4-layer-shell exposes zwlr_layer_surface_v1_set_size
-            GtkLayerShell.auto_exclusive_zone_enable (this);
-            GtkLayerShell.set_exclusive_zone (this, Constants.MINIMIZED_SIZE);
-        } else {
-            GtkLayerShell.set_exclusive_zone (this, 0);
-            GtkLayerShell.auto_exclusive_zone_enable (this);
-        }
     }
 
     private void update_motion_controller_state () {
@@ -208,7 +191,12 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
         animation.pause ();
         animation_progress = (int) (!minimized);
 
-        force_recompute_size ();
+        if (minimized) {
+            GtkLayerShell.set_exclusive_zone (this, Constants.MINIMIZED_SIZE);
+        } else {
+            GtkLayerShell.auto_exclusive_zone_enable (this);
+        }
+
         queue_resize ();
     }
 
@@ -227,7 +215,12 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
             remove_css_class ("floating");
         }
 
-        force_recompute_size ();
+        if (minimized) {
+            GtkLayerShell.set_exclusive_zone (this, Constants.MINIMIZED_SIZE);
+        } else {
+            GtkLayerShell.auto_exclusive_zone_enable (this);
+        }
+
         queue_resize ();
     }
 
@@ -312,7 +305,11 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
                 break;
         }
 
-        force_recompute_size ();
+        if (minimized) {
+            GtkLayerShell.set_exclusive_zone (this, Constants.MINIMIZED_SIZE);
+        } else {
+            GtkLayerShell.auto_exclusive_zone_enable (this);
+        }
 
         // TODO: Resize all the icons to fit the width/height (shrink)
         list.refresh_items ();
@@ -320,18 +317,26 @@ public class Window : Gtk.ApplicationWindow, Gtk.Orientable {
 
     protected override void size_allocate (int width, int height, int baseline) {
         if (minimized) {
-            int new_width = width, new_height = height;
+            // Get the new window animated size while maintaining the full
+            // child allocation to remove GTK warnings
+            int animated_width = 0, animated_height = 0;
+            int child_width = width, child_height = height;
             switch (orientation) {
                 case Gtk.Orientation.HORIZONTAL:
+                    measure (Gtk.Orientation.VERTICAL, width,
+                             null, out animated_height, null, null);
                     child.measure (Gtk.Orientation.VERTICAL, width,
-                                   null, out new_height, null, null);
+                                   null, out child_height, null, null);
                     break;
                 case Gtk.Orientation.VERTICAL:
+                    measure (Gtk.Orientation.HORIZONTAL, height,
+                             null, out animated_width, null, null);
                     child.measure (Gtk.Orientation.HORIZONTAL, height,
-                                   null, out new_width, null, null);
+                                   null, out child_width, null, null);
                     break;
             }
-            base.size_allocate (new_width, new_height, baseline);
+            set_default_size (animated_width, animated_height);
+            child.allocate (child_width, child_height, baseline, null);
         } else {
             base.size_allocate (width, height, baseline);
         }
